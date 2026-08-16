@@ -207,7 +207,7 @@
 
       initSidebar(currentProfile);
       document.getElementById('user-name').textContent = currentProfile.full_name;
-      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      document.getElementById('user-avatar').innerHTML = `<img src="${getAvatarUrl(currentProfile.full_name)}" alt="${currentProfile.full_name}">`;
 
       // Load dashboard data
       loadDashboardData();
@@ -299,7 +299,7 @@
 
       container.innerHTML = enrollments.map(e => `
         <div class="enrollment-card" style="margin-bottom: var(--space-3);">
-          <div class="avatar">${e.students?.full_name?.charAt(0) || 'S'}</div>
+          <div class="avatar"><img src="${getAvatarUrl(e.students?.full_name || 'Student')}" alt="${e.students?.full_name || 'Student'}"></div>
           <div class="enrollment-card-info">
             <div class="enrollment-card-student">${e.students?.full_name || 'Student'}</div>
             <div class="enrollment-card-course">${e.courses?.name || 'Course'} - ${e.learning_mode}</div>
@@ -328,7 +328,7 @@
 
       container.innerHTML = payments.map(p => `
         <div class="payment-list-item">
-          <div class="avatar">${p.students?.full_name?.charAt(0) || 'S'}</div>
+          <div class="avatar"><img src="${getAvatarUrl(p.students?.full_name || 'Student')}" alt="${p.students?.full_name || 'Student'}"></div>
           <div class="payment-list-info">
             <div class="payment-list-student">${p.students?.full_name || 'Student'}</div>
             <div class="payment-list-meta">${formatDate(p.created_at)} | ${p.paystack_reference || 'N/A'}</div>
