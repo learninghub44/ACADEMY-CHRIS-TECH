@@ -401,3 +401,6 @@
     flex-wrap: wrap;
   }
 }
+.section {
+  min-width: 0;
+}
