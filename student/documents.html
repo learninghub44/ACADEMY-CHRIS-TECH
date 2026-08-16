@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Documents - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/student.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Student Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">U</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Student</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">My Documents</h2>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" onclick="openModal('upload-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload Document</button>
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div id="documents-container">
+          <div class="loading-state"><div class="spinner"></div><p>Loading documents...</p></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="upload-modal">
+    <div class="modal-content">
+      <div class="modal-header"><h3>Upload Document</h3><button class="modal-close" onclick="closeModal('upload-modal')">&times;</button></div>
+      <div class="modal-body">
+        <form id="upload-form">
+          <div class="form-group">
+            <label class="form-label">Document Type <span class="required">*</span></label>
+            <select id="doc-type" class="form-control" required>
+              <option value="profile_photo">Profile Photo</option>
+              <option value="national_id">National ID / Passport</option>
+              <option value="passport">Passport Photo</option>
+              <option value="other">Other Document</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Select File <span class="required">*</span></label>
+            <input type="file" id="doc-file" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
+            <p class="form-text">Max size: 5MB. Allowed: PDF, JPEG, PNG</p>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('upload-modal')">Cancel</button>
+        <button class="btn btn-primary" id="upload-btn">Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, studentId = null;
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('student');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      const { data: student } = await getSupabase().from('students').select('id').eq('profile_id', currentUser.id).single();
+      if (student) { studentId = student.id; loadDocuments(); }
+      document.getElementById('upload-btn').addEventListener('click', uploadDocument);
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadDocuments() {
+      try {
+        const { data: documents, error } = await getSupabase().from('documents')
+          .select('*').eq('student_id', studentId).order('created_at', { ascending: false });
+        if (error) throw error;
+        const container = document.getElementById('documents-container');
+        if (!documents || documents.length === 0) {
+          showEmpty(container, 'No documents uploaded yet. Click "Upload Document" to add one.');
+          return;
+        }
+        container.innerHTML = `<div style="display: grid; gap: var(--space-4);">${documents.map(doc => `
+          <div class="document-card">
+            <div class="document-card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="document-card-content">
+              <div class="document-card-name">${doc.document_type.replace(/_/g, ' ').toUpperCase()}</div>
+              <div class="document-card-meta">Uploaded: ${formatDate(doc.created_at)}</div>
+              ${doc.status === 'rejected' && doc.rejection_reason ? `<div style="font-size: var(--text-xs); color: var(--error); margin-top: var(--space-1);">Reason: ${doc.rejection_reason}</div>` : ''}
+            </div>
+            <span class="badge badge-${doc.status === 'approved' ? 'success' : doc.status === 'rejected' ? 'error' : 'warning'}">${doc.status}</span>
+            ${doc.status === 'rejected' ? `<button class="btn btn-ghost btn-sm" onclick="openModal('upload-modal')">Re-upload</button>` : ''}
+          </div>
+        `).join('')}</div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('documents-container'), 'Failed to load documents'); }
+    }
+
+    async function uploadDocument() {
+      const type = document.getElementById('doc-type').value;
+      const file = document.getElementById('doc-file').files[0];
+      if (!file) { showToast('Please select a file', 'error'); return; }
+      if (file.size > CONFIG.MAX_FILE_SIZE) { showToast(`File too large. Max: ${formatFileSize(CONFIG.MAX_FILE_SIZE)}`, 'error'); return; }
+      const btn = document.getElementById('upload-btn');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Uploading...';
+      try {
+        const filePath = `${studentId}/${type}_${Date.now()}_${file.name}`;
+        await storage.upload('student-documents', filePath, file);
+        const { data: urlData } = getSupabase().storage.from('student-documents').getPublicUrl(filePath);
+        const { error } = await getSupabase().from('documents').insert({
+          student_id: studentId, document_type: type, file_url: urlData.publicUrl, file_name: file.name, status: 'pending'
+        });
+        if (error) throw error;
+        showToast('Document uploaded successfully', 'success');
+        closeModal('upload-modal');
+        document.getElementById('upload-form').reset();
+        loadDocuments();
+      } catch (error) { console.error(error); showToast('Failed to upload document', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Upload'; }
+    }
+  </script>
+</body>
+</html>

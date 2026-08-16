@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Enrollments - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Enrollments</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div class="card" style="margin-bottom: var(--space-6);">
+          <div class="card-body">
+            <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center;">
+              <div class="search-input" style="flex: 1; min-width: 200px;">
+                <span class="search-input-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                <input type="text" id="search-enrollments" class="form-control" placeholder="Search..." style="padding-left: 2.5rem;">
+              </div>
+              <select id="filter-status" class="form-control" style="width: auto; min-width: 150px;">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="dropped">Dropped</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="enrollments-container">
+          <div class="loading-state"><div class="spinner"></div><p>Loading enrollments...</p></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, enrollments = [];
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      loadEnrollments();
+      document.getElementById('search-enrollments').addEventListener('input', debounce(filterEnrollments, 300));
+      document.getElementById('filter-status').addEventListener('change', filterEnrollments);
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadEnrollments() {
+      try {
+        const { data, error } = await getSupabase().from('enrollments')
+          .select('*, students(full_name, student_number), courses(name, course_code, fee)')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        enrollments = data || [];
+        renderEnrollments(enrollments);
+      } catch (error) { console.error(error); showError(document.getElementById('enrollments-container'), 'Failed to load enrollments'); }
+    }
+
+    function filterEnrollments() {
+      const search = document.getElementById('search-enrollments').value.toLowerCase();
+      const status = document.getElementById('filter-status').value;
+      const filtered = enrollments.filter(e => {
+        const matchSearch = !search || e.students?.full_name?.toLowerCase().includes(search) || e.courses?.name?.toLowerCase().includes(search);
+        const matchStatus = !status || e.status === status;
+        return matchSearch && matchStatus;
+      });
+      renderEnrollments(filtered);
+    }
+
+    function renderEnrollments(list) {
+      const container = document.getElementById('enrollments-container');
+      if (!list.length) { showEmpty(container, 'No enrollments found.'); return; }
+      container.innerHTML = `
+        <div class="table-container"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Learning Mode</th><th>Fee</th><th>Progress</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${list.map(e => `<tr>
+          <td><div style="font-weight: 500;">${e.students?.full_name || 'N/A'}</div><div style="font-size: var(--text-xs); color: var(--text-muted);">${e.students?.student_number || ''}</div></td>
+          <td>${e.courses?.name || 'N/A'}</td>
+          <td><span class="badge badge-info">${e.learning_mode}</span></td>
+          <td>${formatCurrency(e.courses?.fee || 0)}</td>
+          <td><div class="progress" style="width: 100px;"><div class="progress-bar" style="width: ${e.progress || 0}%"></div></div><span style="font-size: var(--text-xs);">${e.progress || 0}%</span></td>
+          <td><span class="badge badge-${e.status === 'active' ? 'success' : e.status === 'completed' ? 'primary' : 'secondary'}">${e.status}</span></td>
+          <td>
+            <select class="form-control" style="width: auto; min-width: 120px; padding: 0.25rem 0.5rem; font-size: var(--text-xs);" onchange="updateStatus('${e.id}', this.value)">
+              <option value="active" ${e.status === 'active' ? 'selected' : ''}>Active</option>
+              <option value="completed" ${e.status === 'completed' ? 'selected' : ''}>Completed</option>
+              <option value="dropped" ${e.status === 'dropped' ? 'selected' : ''}>Dropped</option>
+              <option value="suspended" ${e.status === 'suspended' ? 'selected' : ''}>Suspended</option>
+            </select>
+          </td>
+        </tr>`).join('')}</tbody></table></div>`;
+    }
+
+    async function updateStatus(id, status) {
+      try {
+        const updates = { status };
+        if (status === 'completed') updates.completed_at = new Date().toISOString();
+        const { error } = await getSupabase().from('enrollments').update(updates).eq('id', id);
+        if (error) throw error;
+        showToast('Enrollment updated', 'success');
+        loadEnrollments();
+      } catch (error) { console.error(error); showToast('Failed to update', 'error'); }
+    }
+  </script>
+</body>
+</html>

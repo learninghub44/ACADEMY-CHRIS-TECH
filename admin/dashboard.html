@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">CT</div>
+        <div class="sidebar-brand">
+          <h1>ChrisTech Academy</h1>
+          <span>Admin Portal</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user" id="user-menu">
+          <div class="avatar" id="user-avatar">A</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="user-name">Loading...</div>
+            <div class="sidebar-user-role">Administrator</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay"></div>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <h2 class="header-title">Admin Dashboard</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Stats -->
+        <div class="admin-stats" id="admin-stats">
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="stat-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-card-value" id="stat-students">0</div>
+            <div class="stat-card-label">Total Students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="stat-card-icon success">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-card-value" id="stat-courses">0</div>
+            <div class="stat-card-label">Active Courses</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="stat-card-icon warning">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                  <line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-card-value" id="stat-revenue">KES 0</div>
+            <div class="stat-card-label">Total Revenue</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="stat-card-icon error">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-card-value" id="stat-balance">KES 0</div>
+            <div class="stat-card-label">Outstanding Balance</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
+          <!-- Recent Enrollments -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3 class="admin-card-title">Recent Enrollments</h3>
+              <a href="enrollments.html" class="btn btn-ghost btn-sm">View All</a>
+            </div>
+            <div class="admin-card-body" id="recent-enrollments">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading enrollments...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Payments -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3 class="admin-card-title">Recent Payments</h3>
+              <a href="payments.html" class="btn btn-ghost btn-sm">View All</a>
+            </div>
+            <div class="admin-card-body" id="recent-payments">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading payments...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div style="margin-top: var(--space-6);">
+          <h3 style="margin-bottom: var(--space-4);">Quick Actions</h3>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4);">
+            <a href="students.html" class="card" style="text-align: center; padding: var(--space-6); text-decoration: none;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto var(--space-2); color: var(--primary);">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+              <h4 style="font-size: var(--text-sm); margin-bottom: var(--space-1);">Manage Students</h4>
+              <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">View and manage student accounts</p>
+            </a>
+            <a href="courses.html" class="card" style="text-align: center; padding: var(--space-6); text-decoration: none;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto var(--space-2); color: var(--success);">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              <h4 style="font-size: var(--text-sm); margin-bottom: var(--space-1);">Manage Courses</h4>
+              <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">Create and manage courses</p>
+            </a>
+            <a href="payments.html" class="card" style="text-align: center; padding: var(--space-6); text-decoration: none;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto var(--space-2); color: var(--warning);">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                <line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+              <h4 style="font-size: var(--text-sm); margin-bottom: var(--space-1);">View Payments</h4>
+              <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">Track all transactions</p>
+            </a>
+            <a href="announcements.html" class="card" style="text-align: center; padding: var(--space-6); text-decoration: none;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto var(--space-2); color: var(--info);">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <h4 style="font-size: var(--text-sm); margin-bottom: var(--space-1);">Announcements</h4>
+              <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">Post announcements to students</p>
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null;
+    let currentProfile = null;
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase();
+      initMobileMenu();
+
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+
+      currentUser = authResult.user;
+      currentProfile = authResult.profile;
+
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+
+      // Load dashboard data
+      loadDashboardData();
+
+      // Logout
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await auth.signOut();
+        window.location.href = '/login.html';
+      });
+    });
+
+    async function loadDashboardData() {
+      try {
+        // Get total students
+        const { count: totalStudents } = await getSupabase()
+          .from('students')
+          .select('*', { count: 'exact', head: true });
+
+        document.getElementById('stat-students').textContent = totalStudents || 0;
+
+        // Get active courses
+        const { count: activeCourses } = await getSupabase()
+          .from('courses')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active');
+
+        document.getElementById('stat-courses').textContent = activeCourses || 0;
+
+        // Get payment stats
+        const { data: payments } = await getSupabase()
+          .from('payments')
+          .select('amount, status');
+
+        let totalRevenue = 0;
+        if (payments) {
+          payments.filter(p => p.status === 'successful').forEach(p => {
+            totalRevenue += p.amount;
+          });
+        }
+        document.getElementById('stat-revenue').textContent = formatCurrency(totalRevenue);
+
+        // Get outstanding balances
+        const { data: enrollments } = await getSupabase()
+          .from('enrollments')
+          .select(`
+            *,
+            courses (fee)
+          `)
+          .eq('status', 'active');
+
+        let totalFees = 0;
+        if (enrollments) {
+          enrollments.forEach(e => {
+            totalFees += e.courses?.fee || 0;
+          });
+        }
+        const outstandingBalance = calculateBalance(totalFees, totalRevenue);
+        document.getElementById('stat-balance').textContent = formatCurrency(outstandingBalance);
+
+        // Load recent enrollments
+        loadRecentEnrollments();
+
+        // Load recent payments
+        loadRecentPayments();
+
+      } catch (error) {
+        console.error('Dashboard error:', error);
+        showToast('Failed to load dashboard data', 'error');
+      }
+    }
+
+    async function loadRecentEnrollments() {
+      const { data: enrollments } = await getSupabase()
+        .from('enrollments')
+        .select(`
+          *,
+          students (full_name, student_number),
+          courses (name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      const container = document.getElementById('recent-enrollments');
+
+      if (!enrollments || enrollments.length === 0) {
+        showEmpty(container, 'No enrollments yet.');
+        return;
+      }
+
+      container.innerHTML = enrollments.map(e => `
+        <div class="enrollment-card" style="margin-bottom: var(--space-3);">
+          <div class="avatar">${e.students?.full_name?.charAt(0) || 'S'}</div>
+          <div class="enrollment-card-info">
+            <div class="enrollment-card-student">${e.students?.full_name || 'Student'}</div>
+            <div class="enrollment-card-course">${e.courses?.name || 'Course'} - ${e.learning_mode}</div>
+          </div>
+          <span class="badge badge-${e.status === 'active' ? 'success' : 'secondary'}">${e.status}</span>
+        </div>
+      `).join('');
+    }
+
+    async function loadRecentPayments() {
+      const { data: payments } = await getSupabase()
+        .from('payments')
+        .select(`
+          *,
+          students (full_name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      const container = document.getElementById('recent-payments');
+
+      if (!payments || payments.length === 0) {
+        showEmpty(container, 'No payments recorded yet.');
+        return;
+      }
+
+      container.innerHTML = payments.map(p => `
+        <div class="payment-list-item">
+          <div class="avatar">${p.students?.full_name?.charAt(0) || 'S'}</div>
+          <div class="payment-list-info">
+            <div class="payment-list-student">${p.students?.full_name || 'Student'}</div>
+            <div class="payment-list-meta">${formatDate(p.created_at)} | ${p.paystack_reference || 'N/A'}</div>
+          </div>
+          <div class="payment-list-amount">${formatCurrency(p.amount)}</div>
+          <span class="badge badge-${p.status === 'successful' ? 'success' : p.status === 'pending' ? 'warning' : 'error'}">${p.status}</span>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

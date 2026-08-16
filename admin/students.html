@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Students - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">CT</div>
+        <div class="sidebar-brand">
+          <h1>ChrisTech Academy</h1>
+          <span>Admin Portal</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="avatar" id="user-avatar">A</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="user-name">Loading...</div>
+            <div class="sidebar-user-role">Administrator</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay"></div>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <h2 class="header-title">Manage Students</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Filters -->
+        <div class="card" style="margin-bottom: var(--space-6);">
+          <div class="card-body">
+            <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center;">
+              <div class="search-input" style="flex: 1; min-width: 200px;">
+                <span class="search-input-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </span>
+                <input type="text" id="search-students" class="form-control" placeholder="Search students..." style="padding-left: 2.5rem;">
+              </div>
+              <select id="filter-status" class="form-control" style="width: auto; min-width: 150px;">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
+              </select>
+              <select id="filter-mode" class="form-control" style="width: auto; min-width: 150px;">
+                <option value="">All Learning Modes</option>
+                <option value="online">Online</option>
+                <option value="physical">Physical</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Students Table -->
+        <div id="students-container">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading students...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null;
+    let currentProfile = null;
+    let students = [];
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase();
+      initMobileMenu();
+
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+
+      currentUser = authResult.user;
+      currentProfile = authResult.profile;
+
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+
+      loadStudents();
+
+      document.getElementById('search-students').addEventListener('input', debounce(filterStudents, 300));
+      document.getElementById('filter-status').addEventListener('change', filterStudents);
+      document.getElementById('filter-mode').addEventListener('change', filterStudents);
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await auth.signOut();
+        window.location.href = '/login.html';
+      });
+    });
+
+    async function loadStudents() {
+      try {
+        const { data, error } = await getSupabase()
+          .from('students')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        students = data || [];
+        renderStudents(students);
+      } catch (error) {
+        console.error('Error loading students:', error);
+        showError(document.getElementById('students-container'), 'Failed to load students');
+      }
+    }
+
+    function filterStudents() {
+      const search = document.getElementById('search-students').value.toLowerCase();
+      const status = document.getElementById('filter-status').value;
+      const mode = document.getElementById('filter-mode').value;
+
+      let filtered = students.filter(student => {
+        const matchesSearch = student.full_name.toLowerCase().includes(search) ||
+                            student.email.toLowerCase().includes(search) ||
+                            student.student_number.toLowerCase().includes(search);
+        const matchesStatus = !status || student.status === status;
+        const matchesMode = !mode || student.learning_preference === mode;
+        return matchesSearch && matchesStatus && matchesMode;
+      });
+
+      renderStudents(filtered);
+    }
+
+    function renderStudents(studentsToRender) {
+      const container = document.getElementById('students-container');
+
+      if (!studentsToRender || studentsToRender.length === 0) {
+        showEmpty(container, 'No students found.');
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Student Number</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Learning Mode</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${studentsToRender.map(student => `
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: var(--space-3);">
+                      <div class="avatar">${student.full_name.charAt(0).toUpperCase()}</div>
+                      <div>
+                        <div style="font-weight: 500;">${student.full_name}</div>
+                        <div style="font-size: var(--text-xs); color: var(--text-muted);">Joined ${formatDate(student.created_at)}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><code style="font-size: var(--text-xs);">${student.student_number}</code></td>
+                  <td>${student.email}</td>
+                  <td>${student.phone || 'N/A'}</td>
+                  <td><span class="badge badge-info">${student.learning_preference || 'Online'}</span></td>
+                  <td>
+                    <span class="badge badge-${student.status === 'active' ? 'success' : student.status === 'suspended' ? 'error' : 'secondary'}">${student.status}</span>
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: var(--space-2);">
+                      <button class="btn btn-ghost btn-sm" onclick="viewStudent('${student.id}')">View</button>
+                      <button class="btn btn-ghost btn-sm" onclick="toggleStudentStatus('${student.id}', '${student.status}')">
+                        ${student.status === 'active' ? 'Suspend' : 'Activate'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function viewStudent(studentId) {
+      window.location.href = `student.html?id=${studentId}`;
+    }
+
+    async function toggleStudentStatus(studentId, currentStatus) {
+      const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+
+      try {
+        const { error } = await getSupabase()
+          .from('students')
+          .update({ status: newStatus })
+          .eq('id', studentId);
+
+        if (error) throw error;
+
+        // Also update profile
+        const { data: student } = await getSupabase()
+          .from('students')
+          .select('profile_id')
+          .eq('id', studentId)
+          .single();
+
+        if (student) {
+          await getSupabase()
+            .from('profiles')
+            .update({ status: newStatus })
+            .eq('user_id', student.profile_id);
+        }
+
+        showToast(`Student ${newStatus === 'active' ? 'activated' : 'suspended'} successfully`, 'success');
+        loadStudents();
+
+      } catch (error) {
+        console.error('Error updating student:', error);
+        showToast('Failed to update student status', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

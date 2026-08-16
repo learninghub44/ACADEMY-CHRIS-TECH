@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetable - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/student.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Student Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">U</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Student</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Timetable</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div id="timetable-container">
+          <div class="loading-state"><div class="spinner"></div><p>Loading timetable...</p></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, studentId = null;
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('student');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      const { data: student } = await getSupabase().from('students').select('id').eq('profile_id', currentUser.id).single();
+      if (student) { studentId = student.id; loadTimetable(); }
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadTimetable() {
+      try {
+        const { data: enrollments } = await getSupabase().from('enrollments').select('course_id').eq('student_id', studentId).eq('status', 'active');
+        if (!enrollments || enrollments.length === 0) { showEmpty(document.getElementById('timetable-container'), 'No timetable entries. Enroll in a course first.'); return; }
+        const courseIds = enrollments.map(e => e.course_id);
+        const { data: entries, error } = await getSupabase().from('timetables')
+          .select('*, courses(name), lessons(title)').in('course_id', courseIds)
+          .gte('date', new Date().toISOString().split('T')[0]).order('date').order('start_time');
+        if (error) throw error;
+        const container = document.getElementById('timetable-container');
+        if (!entries || entries.length === 0) { showEmpty(container, 'No upcoming timetable entries.'); return; }
+        container.innerHTML = entries.map(entry => `
+          <div class="timetable-entry">
+            <div class="timetable-entry-time">
+              <div class="timetable-entry-start">${formatDate(entry.date)}</div>
+              <div class="timetable-entry-end">${formatTime(entry.start_time)} - ${formatTime(entry.end_time)}</div>
+            </div>
+            <div class="timetable-entry-content">
+              <div class="timetable-entry-title">${entry.lessons?.title || entry.courses?.name || 'Class Session'}</div>
+              <div class="timetable-entry-meta">
+                ${entry.instructor ? `<span>Instructor: ${entry.instructor}</span>` : ''}
+                ${entry.location ? `<span>Location: ${entry.location}</span>` : ''}
+                <span class="badge badge-${entry.learning_mode === 'online' ? 'info' : 'primary'}">${entry.learning_mode || 'Physical'}</span>
+              </div>
+              ${entry.meeting_url ? `<a href="${entry.meeting_url}" target="_blank" class="btn btn-primary btn-sm" style="margin-top: var(--space-3);">Join Online Meeting</a>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (error) { console.error(error); showError(document.getElementById('timetable-container'), 'Failed to load timetable'); }
+    }
+  </script>
+</body>
+</html>

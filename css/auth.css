@@ -1,0 +1,339 @@
+/* ChrisTech Academy - Auth Page Styles */
+
+/* Login/Register Pages */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  background-color: var(--background);
+}
+
+.auth-page-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  background-color: var(--primary);
+  color: var(--text-inverse);
+}
+
+.auth-page-left h2 {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  margin-bottom: var(--space-4);
+}
+
+.auth-page-left p {
+  font-size: var(--text-lg);
+  opacity: 0.9;
+  max-width: 400px;
+  text-align: center;
+  color: var(--text-inverse);
+}
+
+.auth-features {
+  margin-top: var(--space-8);
+  max-width: 400px;
+}
+
+.auth-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.auth-feature-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+}
+
+.auth-feature-text h4 {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+  color: var(--text-inverse);
+}
+
+.auth-feature-text p {
+  font-size: var(--text-sm);
+  opacity: 0.8;
+  margin: 0;
+  color: var(--text-inverse);
+}
+
+.auth-page-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+.auth-form-container {
+  width: 100%;
+  max-width: 440px;
+}
+
+.auth-form-header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.auth-form-logo {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary);
+  color: var(--text-inverse);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  border-radius: var(--radius-xl);
+}
+
+.auth-form-header h1 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-2);
+}
+
+.auth-form-header p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.auth-form {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  box-shadow: var(--shadow);
+}
+
+.auth-form .form-group {
+  margin-bottom: var(--space-5);
+}
+
+.auth-form .form-label {
+  font-weight: 500;
+  margin-bottom: var(--space-2);
+}
+
+.auth-form .form-control {
+  padding: 0.75rem 1rem;
+}
+
+.auth-form .btn {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: var(--text-base);
+}
+
+.auth-form-footer {
+  text-align: center;
+  margin-top: var(--space-6);
+}
+
+.auth-form-footer p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.auth-form-footer a {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.auth-form-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-6) 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.auth-form-divider::before,
+.auth-form-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+}
+
+/* Password Strength */
+.password-strength {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.password-strength-bar {
+  flex: 1;
+  height: 4px;
+  background-color: var(--border);
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+
+.password-strength-bar.active {
+  background-color: var(--error);
+}
+
+.password-strength-bar.active.medium {
+  background-color: var(--warning);
+}
+
+.password-strength-bar.active.strong {
+  background-color: var(--success);
+}
+
+.password-strength-text {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+/* Registration Steps */
+.register-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.register-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.register-step-number {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--border);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.register-step.active .register-step-number {
+  background-color: var(--primary);
+  color: var(--text-inverse);
+}
+
+.register-step.completed .register-step-number {
+  background-color: var(--success);
+  color: var(--text-inverse);
+}
+
+.register-step-label {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  display: none;
+}
+
+.register-step.active .register-step-label {
+  color: var(--text);
+  display: block;
+}
+
+.register-step-connector {
+  width: 40px;
+  height: 2px;
+  background-color: var(--border);
+}
+
+.register-step.completed + .register-step-connector {
+  background-color: var(--success);
+}
+
+/* Multi-step Form */
+.form-step {
+  display: none;
+}
+
+.form-step.active {
+  display: block;
+}
+
+.form-step-header {
+  margin-bottom: var(--space-6);
+}
+
+.form-step-header h3 {
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-2);
+}
+
+.form-step-header p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.form-step-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .auth-page {
+    flex-direction: column;
+  }
+
+  .auth-page-left {
+    padding: var(--space-6);
+    min-height: auto;
+  }
+
+  .auth-page-left h2 {
+    font-size: var(--text-2xl);
+  }
+
+  .auth-features {
+    display: none;
+  }
+
+  .auth-page-right {
+    padding: var(--space-6);
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-page-left {
+    padding: var(--space-4);
+  }
+
+  .auth-page-right {
+    padding: var(--space-4);
+  }
+
+  .auth-form {
+    padding: var(--space-6);
+  }
+
+  .register-steps {
+    flex-wrap: wrap;
+  }
+}

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quizzes - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/student.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">CT</div>
+        <div class="sidebar-brand">
+          <h1>ChrisTech Academy</h1>
+          <span>Student Portal</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="avatar" id="user-avatar">U</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="user-name">Loading...</div>
+            <div class="sidebar-user-role">Student</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <h2 class="header-title">Quizzes</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      </header>
+      <div class="content">
+        <div id="quizzes-container">
+          <div class="loading-state"><div class="spinner"></div><p>Loading quizzes...</p></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Quiz Modal -->
+  <div class="modal" id="quiz-modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h3 id="quiz-title">Quiz</h3>
+        <button class="modal-close" onclick="closeModal('quiz-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="quiz-body" style="max-height: 60vh; overflow-y: auto;">
+        <!-- Quiz content loaded dynamically -->
+      </div>
+      <div class="modal-footer" id="quiz-footer">
+        <button class="btn btn-secondary" onclick="closeModal('quiz-modal')">Close</button>
+        <button class="btn btn-primary" id="submit-quiz-btn">Submit Quiz</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, studentId = null;
+    let currentQuiz = null, quizQuestions = [], answers = {};
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase();
+      initMobileMenu();
+      const authResult = await checkAuth('student');
+      if (!authResult) return;
+      currentUser = authResult.user;
+      currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      const { data: student } = await getSupabase().from('students').select('id').eq('profile_id', currentUser.id).single();
+      if (student) { studentId = student.id; loadQuizzes(); }
+      document.getElementById('submit-quiz-btn').addEventListener('click', submitQuiz);
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadQuizzes() {
+      try {
+        const { data: enrollments } = await getSupabase().from('enrollments').select('course_id').eq('student_id', studentId).eq('status', 'active');
+        if (!enrollments || enrollments.length === 0) { showEmpty(document.getElementById('quizzes-container'), 'No quizzes available. Enroll in a course first.'); return; }
+        const courseIds = enrollments.map(e => e.course_id);
+        const { data: quizzes, error } = await getSupabase().from('quizzes').select('*, courses(name)').eq('is_published', true).in('course_id', courseIds);
+        if (error) throw error;
+        const { data: attempts } = await getSupabase().from('quiz_attempts').select('quiz_id, score, is_completed').eq('student_id', studentId);
+        const container = document.getElementById('quizzes-container');
+        if (!quizzes || quizzes.length === 0) { showEmpty(container, 'No quizzes available yet.'); return; }
+        container.innerHTML = `<div style="display: grid; gap: var(--space-4);">${quizzes.map(quiz => {
+          const attempt = attempts?.find(a => a.quiz_id === quiz.id && a.is_completed);
+          return `<div class="quiz-card">
+            <div class="quiz-card-header">
+              <h3 class="quiz-card-title">${quiz.title}</h3>
+              ${attempt ? `<span class="badge badge-success">Score: ${attempt.score}%</span>` : `<span class="badge badge-warning">Not Attempted</span>`}
+            </div>
+            <p style="font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: var(--space-3);">${quiz.description || 'No description'} | Course: ${quiz.courses?.name || 'N/A'}</p>
+            <div class="quiz-card-meta">
+              <span>Passing Score: ${quiz.passing_score}%</span>
+              ${quiz.time_limit ? `<span>Time Limit: ${quiz.time_limit} min</span>` : ''}
+            </div>
+            ${!attempt ? `<button class="btn btn-primary btn-sm" onclick="startQuiz('${quiz.id}')">Start Quiz</button>` : ''}
+          </div>`;
+        }).join('')}</div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('quizzes-container'), 'Failed to load quizzes'); }
+    }
+
+    async function startQuiz(quizId) {
+      try {
+        const { data: quiz } = await getSupabase().from('quizzes').select('*').eq('id', quizId).single();
+        if (!quiz) throw new Error('Quiz not found');
+        const { data: questions } = await getSupabase().from('quiz_questions').select('*').eq('quiz_id', quizId);
+        if (!questions || questions.length === 0) { showToast('This quiz has no questions', 'error'); return; }
+        currentQuiz = quiz;
+        quizQuestions = questions;
+        answers = {};
+        document.getElementById('quiz-title').textContent = quiz.title;
+        document.getElementById('quiz-body').innerHTML = questions.map((q, i) => `
+          <div style="margin-bottom: var(--space-6); padding-bottom: var(--space-6); border-bottom: 1px solid var(--border);">
+            <p style="font-weight: 500; margin-bottom: var(--space-3);">Q${i + 1}. ${q.question}</p>
+            <div style="display: grid; gap: var(--space-2);">
+              ${q.options.map((opt, j) => `
+                <label class="form-check" style="padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-lg); cursor: pointer;">
+                  <input type="radio" name="q${i}" value="${j}" onchange="answers[${i}] = ${j}" style="margin-right: var(--space-2);">
+                  ${opt}
+                </label>
+              `).join('')}
+            </div>
+          </div>
+        `).join('');
+        document.getElementById('quiz-footer').innerHTML = `
+          <button class="btn btn-secondary" onclick="closeModal('quiz-modal')">Cancel</button>
+          <button class="btn btn-primary" id="submit-quiz-btn" onclick="submitQuiz()">Submit Quiz</button>
+        `;
+        openModal('quiz-modal');
+      } catch (error) { console.error(error); showToast('Failed to load quiz', 'error'); }
+    }
+
+    async function submitQuiz() {
+      if (!currentQuiz) return;
+      const totalQuestions = quizQuestions.length;
+      const answeredCount = Object.keys(answers).length;
+      if (answeredCount < totalQuestions) { showToast(`Please answer all questions (${answeredCount}/${totalQuestions} answered)`, 'warning'); return; }
+      const btn = document.getElementById('submit-quiz-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-sm"></span> Submitting...';
+      try {
+        let correctCount = 0;
+        quizQuestions.forEach((q, i) => { if (answers[i] === q.correct_answer) correctCount++; });
+        const score = Math.round((correctCount / totalQuestions) * 100);
+        const { error } = await getSupabase().from('quiz_attempts').insert({
+          quiz_id: currentQuiz.id,
+          student_id: studentId,
+          answers: answers,
+          score: score,
+          is_completed: true,
+          completed_at: new Date().toISOString()
+        });
+        if (error) throw error;
+        showToast(`Quiz submitted! Your score: ${score}%`, score >= currentQuiz.passing_score ? 'success' : 'warning');
+        closeModal('quiz-modal');
+        loadQuizzes();
+      } catch (error) { console.error(error); showToast('Failed to submit quiz', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Submit Quiz'; }
+    }
+  </script>
+</body>
+</html>

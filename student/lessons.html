@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lessons - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/student.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">CT</div>
+        <div class="sidebar-brand">
+          <h1>ChrisTech Academy</h1>
+          <span>Student Portal</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="avatar" id="user-avatar">U</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="user-name">Loading...</div>
+            <div class="sidebar-user-role">Student</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay"></div>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <h2 class="header-title">Lessons</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Course Selection -->
+        <div class="card" style="margin-bottom: var(--space-6);">
+          <div class="card-body">
+            <div style="display: flex; gap: var(--space-4); align-items: center;">
+              <label class="form-label" style="margin: 0; white-space: nowrap;">Select Course:</label>
+              <select id="course-select" class="form-control" style="flex: 1;">
+                <option value="">Choose a course</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lessons List -->
+        <div id="lessons-container">
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+            </div>
+            <p class="empty-state-message">Select a course to view lessons</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Lesson Modal -->
+  <div class="modal" id="lesson-modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h3 id="lesson-title">Lesson</h3>
+        <button class="modal-close" onclick="closeModal('lesson-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="lesson-content">
+        <!-- Lesson content loaded dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('lesson-modal')">Close</button>
+        <button class="btn btn-success" id="complete-lesson-btn">Mark as Completed</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null;
+    let currentProfile = null;
+    let studentId = null;
+    let enrollments = [];
+    let currentLessonId = null;
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase();
+      initMobileMenu();
+
+      const authResult = await checkAuth('student');
+      if (!authResult) return;
+
+      currentUser = authResult.user;
+      currentProfile = authResult.profile;
+
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+
+      const { data: student } = await getSupabase()
+        .from('students')
+        .select('id')
+        .eq('profile_id', currentUser.id)
+        .single();
+
+      if (student) {
+        studentId = student.id;
+        loadEnrollments();
+      }
+
+      document.getElementById('course-select').addEventListener('change', loadLessons);
+      document.getElementById('complete-lesson-btn').addEventListener('click', markLessonComplete);
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await auth.signOut();
+        window.location.href = '/login.html';
+      });
+    });
+
+    async function loadEnrollments() {
+      try {
+        const { data, error } = await getSupabase()
+          .from('enrollments')
+          .select(`
+            *,
+            courses (id, name)
+          `)
+          .eq('student_id', studentId)
+          .eq('status', 'active');
+
+        if (error) throw error;
+        enrollments = data || [];
+
+        const select = document.getElementById('course-select');
+        enrollments.forEach(e => {
+          const option = document.createElement('option');
+          option.value = e.course_id;
+          option.textContent = e.courses?.name || 'Course';
+          select.appendChild(option);
+        });
+
+      } catch (error) {
+        console.error('Error loading enrollments:', error);
+      }
+    }
+
+    async function loadLessons() {
+      const courseId = document.getElementById('course-select').value;
+      const container = document.getElementById('lessons-container');
+
+      if (!courseId) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+            </div>
+            <p class="empty-state-message">Select a course to view lessons</p>
+          </div>
+        `;
+        return;
+      }
+
+      showLoading(container, 'Loading lessons...');
+
+      try {
+        // Get lessons for this course
+        const { data: lessons, error } = await getSupabase()
+          .from('lessons')
+          .select(`
+            *,
+            modules (name)
+          `)
+          .eq('course_id', courseId)
+          .eq('is_published', true)
+          .order('order_number', { ascending: true });
+
+        if (error) throw error;
+
+        // Get completed lessons
+        const enrollment = enrollments.find(e => e.course_id === courseId);
+        let completedLessons = [];
+
+        if (enrollment) {
+          const { data: progress } = await getSupabase()
+            .from('lesson_progress')
+            .select('lesson_id')
+            .eq('enrollment_id', enrollment.id)
+            .eq('student_id', studentId)
+            .eq('is_completed', true);
+
+          completedLessons = progress?.map(p => p.lesson_id) || [];
+        }
+
+        if (!lessons || lessons.length === 0) {
+          showEmpty(container, 'No lessons available for this course yet.');
+          return;
+        }
+
+        // Group lessons by module
+        const groupedLessons = {};
+        lessons.forEach(lesson => {
+          const moduleName = lesson.modules?.name || 'General';
+          if (!groupedLessons[moduleName]) {
+            groupedLessons[moduleName] = [];
+          }
+          groupedLessons[moduleName].push(lesson);
+        });
+
+        let html = '';
+        Object.entries(groupedLessons).forEach(([moduleName, moduleLessons]) => {
+          html += `
+            <div class="section" style="margin-bottom: var(--space-6);">
+              <h3 style="margin-bottom: var(--space-4);">${moduleName}</h3>
+              <div style="display: grid; gap: var(--space-3);">
+                ${moduleLessons.map((lesson, index) => {
+                  const isCompleted = completedLessons.includes(lesson.id);
+                  return `
+                    <div class="lesson-card ${isCompleted ? 'completed' : ''}" onclick="openLesson('${lesson.id}')">
+                      <div class="lesson-card-number">${isCompleted ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' : (index + 1)}</div>
+                      <div class="lesson-card-content">
+                        <div class="lesson-card-title">${lesson.title}</div>
+                        <div class="lesson-card-meta">${lesson.description ? lesson.description.substring(0, 80) + '...' : 'No description'}</div>
+                      </div>
+                      <div class="lesson-card-status">
+                        ${isCompleted ? '<span class="badge badge-success">Completed</span>' : '<span class="badge badge-secondary">Pending</span>'}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+
+      } catch (error) {
+        console.error('Error loading lessons:', error);
+        showError(container, 'Failed to load lessons');
+      }
+    }
+
+    async function openLesson(lessonId) {
+      currentLessonId = lessonId;
+
+      try {
+        const { data: lesson, error } = await getSupabase()
+          .from('lessons')
+          .select('*')
+          .eq('id', lessonId)
+          .single();
+
+        if (error) throw error;
+
+        document.getElementById('lesson-title').textContent = lesson.title;
+        document.getElementById('lesson-content').innerHTML = `
+          <div style="margin-bottom: var(--space-4);">
+            ${lesson.description ? `<p style="color: var(--text-secondary);">${lesson.description}</p>` : ''}
+          </div>
+          ${lesson.content ? `<div style="line-height: 1.8;">${lesson.content}</div>` : '<p>No content available.</p>'}
+          ${lesson.video_url ? `
+            <div style="margin-top: var(--space-4);">
+              <h4 style="margin-bottom: var(--space-2);">Video</h4>
+              <a href="${lesson.video_url}" target="_blank" class="btn btn-primary btn-sm">Watch Video</a>
+            </div>
+          ` : ''}
+        `;
+
+        openModal('lesson-modal');
+
+      } catch (error) {
+        console.error('Error opening lesson:', error);
+        showToast('Failed to load lesson', 'error');
+      }
+    }
+
+    async function markLessonComplete() {
+      if (!currentLessonId) return;
+
+      const enrollment = enrollments.find(e => e.course_id === document.getElementById('course-select').value);
+      if (!enrollment) {
+        showToast('No active enrollment found', 'error');
+        return;
+      }
+
+      try {
+        // Check if already completed
+        const { data: existing } = await getSupabase()
+          .from('lesson_progress')
+          .select('id')
+          .eq('enrollment_id', enrollment.id)
+          .eq('student_id', studentId)
+          .eq('lesson_id', currentLessonId)
+          .eq('is_completed', true)
+          .single();
+
+        if (existing) {
+          showToast('Lesson already marked as completed', 'info');
+          closeModal('lesson-modal');
+          return;
+        }
+
+        // Insert or update progress
+        const { error } = await getSupabase()
+          .from('lesson_progress')
+          .upsert({
+            enrollment_id: enrollment.id,
+            student_id: studentId,
+            lesson_id: currentLessonId,
+            is_completed: true,
+            completed_at: new Date().toISOString()
+          }, {
+            onConflict: 'student_id,enrollment_id,lesson_id'
+          });
+
+        if (error) throw error;
+
+        // Update enrollment progress
+        await updateEnrollmentProgress(enrollment.id);
+
+        showToast('Lesson marked as completed', 'success');
+        closeModal('lesson-modal');
+        loadLessons();
+
+      } catch (error) {
+        console.error('Error marking lesson complete:', error);
+        showToast('Failed to mark lesson as completed', 'error');
+      }
+    }
+
+    async function updateEnrollmentProgress(enrollmentId) {
+      try {
+        // Get total lessons for the course
+        const enrollment = enrollments.find(e => e.id === enrollmentId);
+        if (!enrollment) return;
+
+        const { count: totalLessons } = await getSupabase()
+          .from('lessons')
+          .select('*', { count: 'exact', head: true })
+          .eq('course_id', enrollment.course_id)
+          .eq('is_published', true);
+
+        // Get completed lessons
+        const { count: completedLessons } = await getSupabase()
+          .from('lesson_progress')
+          .select('*', { count: 'exact', head: true })
+          .eq('enrollment_id', enrollmentId)
+          .eq('student_id', studentId)
+          .eq('is_completed', true);
+
+        const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+        await getSupabase()
+          .from('enrollments')
+          .update({ progress })
+          .eq('id', enrollmentId);
+
+      } catch (error) {
+        console.error('Error updating progress:', error);
+      }
+    }
+  </script>
+</body>
+</html>

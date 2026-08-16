@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Results - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Results</h2>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" onclick="openModal('result-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Result</button>
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div class="card" style="margin-bottom: var(--space-6);"><div class="card-body">
+          <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center;">
+            <select id="filter-course" class="form-control" style="width: auto; min-width: 200px;"><option value="">All Courses</option></select>
+          </div>
+        </div></div>
+        <div id="results-container"><div class="loading-state"><div class="spinner"></div><p>Loading results...</p></div></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="result-modal">
+    <div class="modal-content">
+      <div class="modal-header"><h3>Add Result</h3><button class="modal-close" onclick="closeModal('result-modal')">&times;</button></div>
+      <div class="modal-body">
+        <form id="result-form">
+          <div class="form-group"><label class="form-label">Student Enrollment <span class="required">*</span></label><select id="result-enrollment" class="form-control" required><option value="">Select enrollment</option></select></div>
+          <div class="form-group"><label class="form-label">Title <span class="required">*</span></label><input type="text" id="result-title" class="form-control" placeholder="e.g., HTML Quiz" required></div>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Marks Obtained</label><input type="number" id="result-marks" class="form-control" min="0" required></div>
+            <div class="form-group"><label class="form-label">Total Marks</label><input type="number" id="result-total" class="form-control" value="100" min="1" required></div>
+          </div>
+          <div class="form-group"><label class="form-label">Remarks</label><textarea id="result-remarks" class="form-control" rows="2"></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('result-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-result-btn">Save Result</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, courses = [];
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      await loadCourses();
+      loadResults();
+      document.getElementById('filter-course').addEventListener('change', loadResults);
+      document.getElementById('result-enrollment').addEventListener('change', function() {
+        const enrollId = this.value;
+        if (enrollId) { document.getElementById('result-form').dataset.enrollmentId = enrollId; }
+      });
+      document.getElementById('save-result-btn').addEventListener('click', saveResult);
+      document.getElementById('result-modal').addEventListener('click', function(e) { if (e.target === this || e.target.classList.contains('modal-close')) document.getElementById('result-form').reset(); });
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadCourses() {
+      const { data } = await getSupabase().from('courses').select('id, name').order('name');
+      courses = data || [];
+      document.getElementById('filter-course').innerHTML = '<option value="">All Courses</option>' + courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    async function loadEnrollments() {
+      const { data } = await getSupabase().from('enrollments')
+        .select('id, students(full_name, student_number), courses(name)')
+        .eq('status', 'active');
+      const select = document.getElementById('result-enrollment');
+      select.innerHTML = '<option value="">Select enrollment</option>';
+      (data || []).forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.id;
+        opt.textContent = `${e.students?.full_name || 'Student'} - ${e.courses?.name || 'Course'}`;
+        select.appendChild(opt);
+      });
+    }
+
+    async function loadResults() {
+      try {
+        const courseId = document.getElementById('filter-course').value;
+        let query = getSupabase().from('results').select('*, enrollments(students(full_name, student_number), courses(name, id))').order('created_at', { ascending: false });
+        if (courseId) query = query.eq('enrollments.course_id', courseId);
+        const { data, error } = await query;
+        if (error) throw error;
+        const container = document.getElementById('results-container');
+        if (!data || !data.length) { showEmpty(container, 'No results recorded yet.'); return; }
+        container.innerHTML = `
+          <div class="table-container"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Assessment</th><th>Marks</th><th>Percentage</th><th>Remarks</th></tr></thead>
+          <tbody>${data.map(r => {
+            const pct = r.total_marks > 0 ? Math.round((r.marks / r.total_marks) * 100) : 0;
+            return `<tr>
+              <td><div style="font-weight: 500;">${r.enrollments?.students?.full_name || 'N/A'}</div><div style="font-size: var(--text-xs); color: var(--text-muted);">${r.enrollments?.students?.student_number || ''}</div></td>
+              <td>${r.enrollments?.courses?.name || 'N/A'}</td>
+              <td>${r.title}</td>
+              <td>${r.marks} / ${r.total_marks}</td>
+              <td><span style="color: ${pct >= 70 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--error)'}; font-weight: 600;">${pct}%</span></td>
+              <td>${r.remarks || '-'}</td>
+            </tr>`;
+          }).join('')}</tbody></table></div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('results-container'), 'Failed to load'); }
+    }
+
+    async function saveResult() {
+      const enrollmentId = document.getElementById('result-enrollment').value;
+      const title = document.getElementById('result-title').value.trim();
+      const marks = parseFloat(document.getElementById('result-marks').value);
+      const totalMarks = parseFloat(document.getElementById('result-total').value);
+      const remarks = document.getElementById('result-remarks').value.trim();
+      if (!enrollmentId || !title || isNaN(marks) || isNaN(totalMarks)) { showToast('Fill all required fields', 'error'); return; }
+      const btn = document.getElementById('save-result-btn');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Saving...';
+      try {
+        const { data: enrollment } = await getSupabase().from('enrollments').select('student_id').eq('id', enrollmentId).single();
+        const percentage = totalMarks > 0 ? Math.round((marks / totalMarks) * 100) : 0;
+        const { error } = await getSupabase().from('results').insert({
+          enrollment_id: enrollmentId, student_id: enrollment?.student_id, title, marks, total_marks: totalMarks, percentage, remarks: remarks || null
+        });
+        if (error) throw error;
+        showToast('Result saved', 'success');
+        closeModal('result-modal'); document.getElementById('result-form').reset(); loadResults();
+      } catch (error) { console.error(error); showToast('Failed to save', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Save Result'; }
+    }
+
+    openModal = function(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; loadEnrollments(); };
+  </script>
+</body>
+</html>

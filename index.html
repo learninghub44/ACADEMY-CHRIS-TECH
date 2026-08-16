@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChrisTech Academy - Empowering Digital Skills</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <style>
+    .landing-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .landing-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-6);
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: var(--z-sticky);
+    }
+
+    .landing-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .landing-logo-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--primary);
+      color: var(--text-inverse);
+      font-weight: 700;
+      font-size: var(--text-lg);
+      border-radius: var(--radius-lg);
+    }
+
+    .landing-logo-text {
+      font-size: var(--text-lg);
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .landing-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .landing-hero {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-12) var(--space-6);
+      background-color: var(--primary);
+      color: var(--text-inverse);
+      text-align: center;
+    }
+
+    .landing-hero-content {
+      max-width: 640px;
+    }
+
+    .landing-hero h1 {
+      font-size: var(--text-4xl);
+      font-weight: 700;
+      margin-bottom: var(--space-4);
+      color: var(--text-inverse);
+    }
+
+    .landing-hero p {
+      font-size: var(--text-lg);
+      opacity: 0.9;
+      margin-bottom: var(--space-8);
+      color: var(--text-inverse);
+    }
+
+    .landing-hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-4);
+    }
+
+    .landing-hero .btn {
+      padding: 0.875rem 2rem;
+      font-size: var(--text-base);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      color: var(--text-inverse);
+      border-color: var(--text-inverse);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--text-inverse);
+      color: var(--primary);
+    }
+
+    .landing-features {
+      padding: var(--space-12) var(--space-6);
+      background-color: var(--background);
+    }
+
+    .landing-features-header {
+      text-align: center;
+      margin-bottom: var(--space-10);
+    }
+
+    .landing-features-header h2 {
+      font-size: var(--text-3xl);
+      margin-bottom: var(--space-4);
+    }
+
+    .landing-features-header p {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .landing-features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-8);
+      max-width: 1024px;
+      margin: 0 auto;
+    }
+
+    .landing-feature {
+      text-align: center;
+      padding: var(--space-6);
+    }
+
+    .landing-feature-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--primary-light);
+      color: var(--primary);
+      border-radius: var(--radius-xl);
+    }
+
+    .landing-feature h3 {
+      font-size: var(--text-lg);
+      margin-bottom: var(--space-2);
+    }
+
+    .landing-feature p {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .landing-footer {
+      padding: var(--space-6);
+      background-color: var(--surface);
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .landing-footer p {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .landing-nav {
+        display: none;
+      }
+
+      .landing-hero h1 {
+        font-size: var(--text-3xl);
+      }
+
+      .landing-hero-actions {
+        flex-direction: column;
+      }
+
+      .landing-features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="landing-page">
+    <header class="landing-header">
+      <div class="landing-logo">
+        <div class="landing-logo-icon">CT</div>
+        <span class="landing-logo-text">ChrisTech Academy</span>
+      </div>
+      <nav class="landing-nav">
+        <a href="login.html" class="btn btn-ghost">Sign In</a>
+        <a href="register.html" class="btn btn-primary">Register Now</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="landing-hero">
+        <div class="landing-hero-content">
+          <h1>Empowering Digital Skills for Tomorrow</h1>
+          <p>Join ChrisTech Academy and gain practical computer skills through online, physical, or hybrid learning modes. Start your journey to digital excellence today.</p>
+          <div class="landing-hero-actions">
+            <a href="register.html" class="btn btn-secondary">Get Started</a>
+            <a href="login.html" class="btn btn-outline">Sign In to Portal</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="landing-features">
+        <div class="landing-features-header">
+          <h2>Why Choose ChrisTech Academy?</h2>
+          <p>We offer comprehensive computer training designed to equip you with practical skills for the modern world.</p>
+        </div>
+        <div class="landing-features-grid">
+          <div class="landing-feature">
+            <div class="landing-feature-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
+            <h3>Flexible Learning</h3>
+            <p>Choose between online, physical, or hybrid learning modes that fit your schedule and lifestyle.</p>
+          </div>
+          <div class="landing-feature">
+            <div class="landing-feature-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+            </div>
+            <h3>Practical Curriculum</h3>
+            <p>Learn industry-relevant skills with hands-on projects and real-world applications.</p>
+          </div>
+          <div class="landing-feature">
+            <div class="landing-feature-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="7"/>
+                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+              </svg>
+            </div>
+            <h3>Certified Training</h3>
+            <p>Earn recognized certificates upon successful completion of your courses and fee payment.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="landing-footer">
+      <p>&copy; 2026 ChrisTech Academy. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

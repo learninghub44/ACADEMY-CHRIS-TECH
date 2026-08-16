@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Payments - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Payments</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div class="admin-stats" style="margin-bottom: var(--space-6);">
+          <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div></div><div class="stat-card-value" id="stat-total">KES 0</div><div class="stat-card-label">Total Revenue</div></div>
+          <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon success"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div></div><div class="stat-card-value" id="stat-successful">0</div><div class="stat-card-label">Successful</div></div>
+          <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon warning"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div></div><div class="stat-card-value" id="stat-pending">0</div><div class="stat-card-label">Pending</div></div>
+          <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon error"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div><div class="stat-card-value" id="stat-failed">0</div><div class="stat-card-label">Failed</div></div>
+        </div>
+        <div class="card" style="margin-bottom: var(--space-6);">
+          <div class="card-body">
+            <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center;">
+              <div class="search-input" style="flex: 1; min-width: 200px;">
+                <span class="search-input-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                <input type="text" id="search-payments" class="form-control" placeholder="Search by student or reference..." style="padding-left: 2.5rem;">
+              </div>
+              <select id="filter-status" class="form-control" style="width: auto; min-width: 150px;">
+                <option value="">All Status</option>
+                <option value="successful">Successful</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="payments-container">
+          <div class="loading-state"><div class="spinner"></div><p>Loading payments...</p></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, payments = [];
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      loadPayments();
+      document.getElementById('search-payments').addEventListener('input', debounce(filterPayments, 300));
+      document.getElementById('filter-status').addEventListener('change', filterPayments);
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadPayments() {
+      try {
+        const { data, error } = await getSupabase().from('payments')
+          .select('*, students(full_name, student_number), enrollments(courses(name))').order('created_at', { ascending: false });
+        if (error) throw error;
+        payments = data || [];
+        updateStats(payments);
+        renderPayments(payments);
+      } catch (error) { console.error(error); showError(document.getElementById('payments-container'), 'Failed to load payments'); }
+    }
+
+    function updateStats(p) {
+      const successful = p.filter(x => x.status === 'successful');
+      document.getElementById('stat-total').textContent = formatCurrency(successful.reduce((s, x) => s + x.amount, 0));
+      document.getElementById('stat-successful').textContent = successful.length;
+      document.getElementById('stat-pending').textContent = p.filter(x => x.status === 'pending').length;
+      document.getElementById('stat-failed').textContent = p.filter(x => x.status === 'failed').length;
+    }
+
+    function filterPayments() {
+      const search = document.getElementById('search-payments').value.toLowerCase();
+      const status = document.getElementById('filter-status').value;
+      const filtered = payments.filter(p => {
+        const matchSearch = !search || p.students?.full_name?.toLowerCase().includes(search) || p.paystack_reference?.toLowerCase().includes(search);
+        const matchStatus = !status || p.status === status;
+        return matchSearch && matchStatus;
+      });
+      renderPayments(filtered);
+    }
+
+    function renderPayments(list) {
+      const container = document.getElementById('payments-container');
+      if (!list.length) { showEmpty(container, 'No payments found.'); return; }
+      container.innerHTML = `
+        <div class="table-container"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Reference</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>${list.map(p => `<tr>
+          <td><div style="font-weight: 500;">${p.students?.full_name || 'N/A'}</div><div style="font-size: var(--text-xs); color: var(--text-muted);">${p.students?.student_number || ''}</div></td>
+          <td>${p.enrollments?.courses?.name || 'N/A'}</td>
+          <td style="font-weight: 600;">${formatCurrency(p.amount)}</td>
+          <td><code style="font-size: var(--text-xs);">${p.paystack_reference || 'N/A'}</code></td>
+          <td>${formatDate(p.created_at)}</td>
+          <td><span class="badge badge-${p.status === 'successful' ? 'success' : p.status === 'pending' ? 'warning' : 'error'}">${p.status}</span></td>
+        </tr>`).join('')}</tbody></table></div>`;
+    }
+  </script>
+</body>
+</html>

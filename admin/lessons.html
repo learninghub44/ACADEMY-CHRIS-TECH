@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Lessons - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Lessons</h2>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" onclick="openModal('lesson-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Lesson</button>
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div class="card" style="margin-bottom: var(--space-6);"><div class="card-body">
+          <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center;">
+            <select id="filter-course" class="form-control" style="width: auto; min-width: 200px;"><option value="">All Courses</option></select>
+            <select id="filter-published" class="form-control" style="width: auto; min-width: 150px;"><option value="">All Status</option><option value="true">Published</option><option value="false">Draft</option></select>
+          </div>
+        </div></div>
+        <div id="lessons-container"><div class="loading-state"><div class="spinner"></div><p>Loading lessons...</p></div></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="lesson-modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header"><h3 id="modal-title">Add Lesson</h3><button class="modal-close" onclick="closeModal('lesson-modal')">&times;</button></div>
+      <div class="modal-body">
+        <form id="lesson-form">
+          <input type="hidden" id="lesson-id">
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Course <span class="required">*</span></label><select id="lesson-course" class="form-control" required></select></div>
+            <div class="form-group"><label class="form-label">Module</label><select id="lesson-module" class="form-control"><option value="">No Module</option></select></div>
+          </div>
+          <div class="form-group"><label class="form-label">Title <span class="required">*</span></label><input type="text" id="lesson-title" class="form-control" required></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea id="lesson-description" class="form-control" rows="2"></textarea></div>
+          <div class="form-group"><label class="form-label">Content</label><textarea id="lesson-content" class="form-control" rows="6" placeholder="HTML content supported"></textarea></div>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Video URL</label><input type="url" id="lesson-video" class="form-control" placeholder="https://..."></div>
+            <div class="form-group"><label class="form-label">Order</label><input type="number" id="lesson-order" class="form-control" value="0"></div>
+          </div>
+          <div class="form-group"><label class="form-check"><input type="checkbox" id="lesson-published" class="form-check-input" checked><span class="form-check-label">Published</span></label></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('lesson-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-lesson-btn">Save Lesson</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, courses = [], editingId = null;
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      await loadCourses();
+      loadLessons();
+      document.getElementById('filter-course').addEventListener('change', loadLessons);
+      document.getElementById('filter-published').addEventListener('change', loadLessons);
+      document.getElementById('lesson-course').addEventListener('change', loadModules);
+      document.getElementById('save-lesson-btn').addEventListener('click', saveLesson);
+      document.getElementById('lesson-modal').addEventListener('click', function(e) { if (e.target === this || e.target.classList.contains('modal-close')) resetForm(); });
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadCourses() {
+      const { data } = await getSupabase().from('courses').select('id, name').order('name');
+      courses = data || [];
+      const optionsHtml = courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      document.getElementById('filter-course').innerHTML = '<option value="">All Courses</option>' + optionsHtml;
+      document.getElementById('lesson-course').innerHTML = optionsHtml;
+    }
+
+    async function loadModules() {
+      const courseId = document.getElementById('lesson-course').value;
+      const select = document.getElementById('lesson-module');
+      select.innerHTML = '<option value="">No Module</option>';
+      if (!courseId) return;
+      const { data } = await getSupabase().from('modules').select('id, name').eq('course_id', courseId).order('order_number');
+      (data || []).forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.textContent = m.name; select.appendChild(opt); });
+    }
+
+    async function loadLessons() {
+      try {
+        const courseId = document.getElementById('filter-course').value;
+        const published = document.getElementById('filter-published').value;
+        let query = getSupabase().from('lessons').select('*, courses(name)').order('created_at', { ascending: false });
+        if (courseId) query = query.eq('course_id', courseId);
+        if (published) query = query.eq('is_published', published === 'true');
+        const { data, error } = await query;
+        if (error) throw error;
+        const container = document.getElementById('lessons-container');
+        if (!data || !data.length) { showEmpty(container, 'No lessons found.'); return; }
+        container.innerHTML = `
+          <div class="table-container"><table class="table"><thead><tr><th>Title</th><th>Course</th><th>Order</th><th>Published</th><th>Actions</th></tr></thead>
+          <tbody>${data.map(l => `<tr>
+            <td style="font-weight: 500;">${l.title}</td>
+            <td>${l.courses?.name || 'N/A'}</td>
+            <td>${l.order_number || 0}</td>
+            <td><span class="badge badge-${l.is_published ? 'success' : 'secondary'}">${l.is_published ? 'Published' : 'Draft'}</span></td>
+            <td><div style="display: flex; gap: var(--space-2);">
+              <button class="btn btn-ghost btn-sm" onclick="editLesson('${l.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm" onclick="togglePublished('${l.id}', ${l.is_published})">${l.is_published ? 'Unpublish' : 'Publish'}</button>
+            </div></td>
+          </tr>`).join('')}</tbody></table></div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('lessons-container'), 'Failed to load'); }
+    }
+
+    async function saveLesson() {
+      const courseId = document.getElementById('lesson-course').value;
+      const moduleId = document.getElementById('lesson-module').value || null;
+      const title = document.getElementById('lesson-title').value.trim();
+      const description = document.getElementById('lesson-description').value.trim();
+      const content = document.getElementById('lesson-content').value;
+      const videoUrl = document.getElementById('lesson-video').value.trim() || null;
+      const order = parseInt(document.getElementById('lesson-order').value) || 0;
+      const isPublished = document.getElementById('lesson-published').checked;
+      if (!courseId || !title) { showToast('Course and Title are required', 'error'); return; }
+      const btn = document.getElementById('save-lesson-btn');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Saving...';
+      try {
+        const record = { course_id: courseId, module_id: moduleId, title, description: description || null, content: content || null, video_url: videoUrl, order_number: order, is_published: isPublished };
+        if (editingId) { await getSupabase().from('lessons').update(record).eq('id', editingId); }
+        else { await getSupabase().from('lessons').insert(record); }
+        showToast('Lesson saved', 'success');
+        closeModal('lesson-modal'); resetForm(); loadLessons();
+      } catch (error) { console.error(error); showToast('Failed to save', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Save Lesson'; }
+    }
+
+    async function editLesson(id) {
+      const { data } = await getSupabase().from('lessons').select('*').eq('id', id).single();
+      if (!data) return;
+      editingId = id;
+      document.getElementById('modal-title').textContent = 'Edit Lesson';
+      document.getElementById('lesson-course').value = data.course_id;
+      await loadModules();
+      document.getElementById('lesson-module').value = data.module_id || '';
+      document.getElementById('lesson-title').value = data.title;
+      document.getElementById('lesson-description').value = data.description || '';
+      document.getElementById('lesson-content').value = data.content || '';
+      document.getElementById('lesson-video').value = data.video_url || '';
+      document.getElementById('lesson-order').value = data.order_number || 0;
+      document.getElementById('lesson-published').checked = data.is_published;
+      openModal('lesson-modal');
+    }
+
+    async function togglePublished(id, current) {
+      await getSupabase().from('lessons').update({ is_published: !current }).eq('id', id);
+      loadLessons();
+    }
+
+    function resetForm() { editingId = null; document.getElementById('modal-title').textContent = 'Add Lesson'; document.getElementById('lesson-form').reset(); document.getElementById('lesson-published').checked = true; }
+  </script>
+</body>
+</html>

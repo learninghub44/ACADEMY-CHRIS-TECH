@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Attendance - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Attendance</h2>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" onclick="openModal('attendance-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Record Attendance</button>
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div id="attendance-container"><div class="loading-state"><div class="spinner"></div><p>Loading attendance...</p></div></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="attendance-modal">
+    <div class="modal-content">
+      <div class="modal-header"><h3>Record Attendance</h3><button class="modal-close" onclick="closeModal('attendance-modal')">&times;</button></div>
+      <div class="modal-body">
+        <form id="attendance-form">
+          <div class="form-group"><label class="form-label">Enrollment <span class="required">*</span></label><select id="att-enrollment" class="form-control" required><option value="">Select enrollment</option></select></div>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Date <span class="required">*</span></label><input type="date" id="att-date" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Status <span class="required">*</span></label><select id="att-status" class="form-control" required><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option></select></div>
+          </div>
+          <div class="form-group"><label class="form-label">Remarks</label><input type="text" id="att-remarks" class="form-control"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('attendance-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-attendance-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null;
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      loadAttendance();
+      document.getElementById('save-attendance-btn').addEventListener('click', saveAttendance);
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadAttendance() {
+      try {
+        const { data, error } = await getSupabase().from('attendance')
+          .select('*, students(full_name, student_number), enrollments(courses(name))').order('date', { ascending: false });
+        if (error) throw error;
+        const container = document.getElementById('attendance-container');
+        if (!data || !data.length) { showEmpty(container, 'No attendance records yet.'); return; }
+        container.innerHTML = `
+          <div class="table-container"><table class="table"><thead><tr><th>Date</th><th>Student</th><th>Course</th><th>Status</th><th>Remarks</th></tr></thead>
+          <tbody>${data.map(a => `<tr>
+            <td>${formatDate(a.date)}</td>
+            <td><div style="font-weight: 500;">${a.students?.full_name || 'N/A'}</div><div style="font-size: var(--text-xs); color: var(--text-muted);">${a.students?.student_number || ''}</div></td>
+            <td>${a.enrollments?.courses?.name || 'N/A'}</td>
+            <td><span class="badge badge-${a.status === 'present' ? 'success' : a.status === 'late' ? 'warning' : 'error'}">${a.status}</span></td>
+            <td>${a.remarks || '-'}</td>
+          </tr>`).join('')}</tbody></table></div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('attendance-container'), 'Failed'); }
+    }
+
+    async function loadEnrollments() {
+      const { data } = await getSupabase().from('enrollments')
+        .select('id, students(full_name, student_number), courses(name)')
+        .eq('status', 'active');
+      const select = document.getElementById('att-enrollment');
+      select.innerHTML = '<option value="">Select enrollment</option>';
+      (data || []).forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.id;
+        opt.textContent = `${e.students?.full_name || 'Student'} - ${e.courses?.name || 'Course'}`;
+        select.appendChild(opt);
+      });
+    }
+
+    async function saveAttendance() {
+      const enrollmentId = document.getElementById('att-enrollment').value;
+      const date = document.getElementById('att-date').value;
+      const status = document.getElementById('att-status').value;
+      const remarks = document.getElementById('att-remarks').value.trim();
+      if (!enrollmentId || !date || !status) { showToast('Fill all required fields', 'error'); return; }
+      const btn = document.getElementById('save-attendance-btn');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Saving...';
+      try {
+        const { data: enrollment } = await getSupabase().from('enrollments').select('student_id').eq('id', enrollmentId).single();
+        const { error } = await getSupabase().from('attendance').upsert({
+          enrollment_id: enrollmentId, student_id: enrollment?.student_id, date, status, remarks: remarks || null
+        }, { onConflict: 'enrollment_id,student_id,date' });
+        if (error) throw error;
+        showToast('Attendance recorded', 'success');
+        closeModal('attendance-modal'); document.getElementById('attendance-form').reset(); loadAttendance();
+      } catch (error) { console.error(error); showToast('Failed', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Save'; }
+    }
+
+    openModal = function(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; loadEnrollments(); };
+  </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Assignments - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Assignments</h2>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" onclick="openModal('assignment-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Assignment</button>
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div id="assignments-container"><div class="loading-state"><div class="spinner"></div><p>Loading assignments...</p></div></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="assignment-modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header"><h3 id="modal-title">Add Assignment</h3><button class="modal-close" onclick="closeModal('assignment-modal')">&times;</button></div>
+      <div class="modal-body">
+        <form id="assignment-form">
+          <input type="hidden" id="assignment-id">
+          <div class="form-group"><label class="form-label">Course <span class="required">*</span></label><select id="assignment-course" class="form-control" required></select></div>
+          <div class="form-group"><label class="form-label">Title <span class="required">*</span></label><input type="text" id="assignment-title" class="form-control" required></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea id="assignment-description" class="form-control" rows="3"></textarea></div>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Deadline</label><input type="datetime-local" id="assignment-deadline" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Max Marks</label><input type="number" id="assignment-marks" class="form-control" value="100" min="1"></div>
+          </div>
+          <div class="form-group"><label class="form-check"><input type="checkbox" id="assignment-published" class="form-check-input" checked><span class="form-check-label">Published</span></label></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('assignment-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-assignment-btn">Save Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, editingId = null;
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      await loadCourses();
+      loadAssignments();
+      document.getElementById('save-assignment-btn').addEventListener('click', saveAssignment);
+      document.getElementById('assignment-modal').addEventListener('click', function(e) { if (e.target === this || e.target.classList.contains('modal-close')) resetForm(); });
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadCourses() {
+      const { data } = await getSupabase().from('courses').select('id, name').order('name');
+      document.getElementById('assignment-course').innerHTML = (data || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    async function loadAssignments() {
+      try {
+        const { data, error } = await getSupabase().from('assignments').select('*, courses(name)').order('created_at', { ascending: false });
+        if (error) throw error;
+        const container = document.getElementById('assignments-container');
+        if (!data || !data.length) { showEmpty(container, 'No assignments yet.'); return; }
+        container.innerHTML = `
+          <div class="table-container"><table class="table"><thead><tr><th>Title</th><th>Course</th><th>Deadline</th><th>Max Marks</th><th>Published</th><th>Actions</th></tr></thead>
+          <tbody>${data.map(a => `<tr>
+            <td style="font-weight: 500;">${a.title}</td>
+            <td>${a.courses?.name || 'N/A'}</td>
+            <td>${a.deadline ? formatDateTime(a.deadline) : 'No deadline'}</td>
+            <td>${a.max_marks || 100}</td>
+            <td><span class="badge badge-${a.is_published ? 'success' : 'secondary'}">${a.is_published ? 'Published' : 'Draft'}</span></td>
+            <td><div style="display: flex; gap: var(--space-2);">
+              <button class="btn btn-ghost btn-sm" onclick="editAssignment('${a.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm" onclick="togglePublished('${a.id}', ${a.is_published})">${a.is_published ? 'Unpublish' : 'Publish'}</button>
+            </div></td>
+          </tr>`).join('')}</tbody></table></div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('assignments-container'), 'Failed'); }
+    }
+
+    async function saveAssignment() {
+      const courseId = document.getElementById('assignment-course').value;
+      const title = document.getElementById('assignment-title').value.trim();
+      const description = document.getElementById('assignment-description').value.trim();
+      const deadline = document.getElementById('assignment-deadline').value;
+      const maxMarks = parseFloat(document.getElementById('assignment-marks').value) || 100;
+      const isPublished = document.getElementById('assignment-published').checked;
+      if (!courseId || !title) { showToast('Course and Title required', 'error'); return; }
+      const btn = document.getElementById('save-assignment-btn');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Saving...';
+      try {
+        const record = { course_id: courseId, title, description: description || null, deadline: deadline ? new Date(deadline).toISOString() : null, max_marks: maxMarks, is_published: isPublished };
+        if (editingId) { await getSupabase().from('assignments').update(record).eq('id', editingId); }
+        else { await getSupabase().from('assignments').insert(record); }
+        showToast('Assignment saved', 'success');
+        closeModal('assignment-modal'); resetForm(); loadAssignments();
+      } catch (error) { console.error(error); showToast('Failed', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Save Assignment'; }
+    }
+
+    async function editAssignment(id) {
+      const { data } = await getSupabase().from('assignments').select('*').eq('id', id).single();
+      if (!data) return;
+      editingId = id;
+      document.getElementById('modal-title').textContent = 'Edit Assignment';
+      document.getElementById('assignment-course').value = data.course_id;
+      document.getElementById('assignment-title').value = data.title;
+      document.getElementById('assignment-description').value = data.description || '';
+      document.getElementById('assignment-deadline').value = data.deadline ? new Date(data.deadline).toISOString().slice(0, 16) : '';
+      document.getElementById('assignment-marks').value = data.max_marks || 100;
+      document.getElementById('assignment-published').checked = data.is_published;
+      openModal('assignment-modal');
+    }
+
+    async function togglePublished(id, current) {
+      await getSupabase().from('assignments').update({ is_published: !current }).eq('id', id);
+      loadAssignments();
+    }
+
+    function resetForm() { editingId = null; document.getElementById('modal-title').textContent = 'Add Assignment'; document.getElementById('assignment-form').reset(); document.getElementById('assignment-published').checked = true; }
+  </script>
+</body>
+</html>

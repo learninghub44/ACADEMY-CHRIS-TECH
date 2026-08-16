@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Timetable - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Timetable</h2>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" onclick="openModal('timetable-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Entry</button>
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div id="timetable-container"><div class="loading-state"><div class="spinner"></div><p>Loading timetable...</p></div></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="timetable-modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header"><h3 id="modal-title">Add Timetable Entry</h3><button class="modal-close" onclick="closeModal('timetable-modal')">&times;</button></div>
+      <div class="modal-body">
+        <form id="timetable-form">
+          <input type="hidden" id="timetable-id">
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Course <span class="required">*</span></label><select id="tt-course" class="form-control" required></select></div>
+            <div class="form-group"><label class="form-label">Instructor</label><input type="text" id="tt-instructor" class="form-control"></div>
+          </div>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Date <span class="required">*</span></label><input type="date" id="tt-date" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Learning Mode</label><select id="tt-mode" class="form-control"><option value="physical">Physical</option><option value="online">Online</option><option value="hybrid">Hybrid</option></select></div>
+          </div>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Start Time <span class="required">*</span></label><input type="time" id="tt-start" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">End Time <span class="required">*</span></label><input type="time" id="tt-end" class="form-control" required></div>
+          </div>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Location</label><input type="text" id="tt-location" class="form-control" placeholder="Room or Online"></div>
+            <div class="form-group"><label class="form-label">Meeting URL</label><input type="url" id="tt-url" class="form-control" placeholder="https://..."></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('timetable-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-tt-btn">Save Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, editingId = null;
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      await loadCourses();
+      loadTimetable();
+      document.getElementById('save-tt-btn').addEventListener('click', saveEntry);
+      document.getElementById('timetable-modal').addEventListener('click', function(e) { if (e.target === this || e.target.classList.contains('modal-close')) resetForm(); });
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadCourses() {
+      const { data } = await getSupabase().from('courses').select('id, name').order('name');
+      document.getElementById('tt-course').innerHTML = (data || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    async function loadTimetable() {
+      try {
+        const { data, error } = await getSupabase().from('timetables').select('*, courses(name)').order('date', { ascending: false }).order('start_time');
+        if (error) throw error;
+        const container = document.getElementById('timetable-container');
+        if (!data || !data.length) { showEmpty(container, 'No timetable entries yet.'); return; }
+        container.innerHTML = `
+          <div class="table-container"><table class="table"><thead><tr><th>Date</th><th>Time</th><th>Course</th><th>Instructor</th><th>Location</th><th>Mode</th><th>Actions</th></tr></thead>
+          <tbody>${data.map(t => `<tr>
+            <td>${formatDate(t.date)}</td>
+            <td>${formatTime(t.start_time)} - ${formatTime(t.end_time)}</td>
+            <td>${t.courses?.name || 'N/A'}</td>
+            <td>${t.instructor || '-'}</td>
+            <td>${t.location || '-'}</td>
+            <td><span class="badge badge-${t.learning_mode === 'online' ? 'info' : 'primary'}">${t.learning_mode}</span></td>
+            <td><div style="display: flex; gap: var(--space-2);">
+              <button class="btn btn-ghost btn-sm" onclick="editEntry('${t.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm" style="color: var(--error);" onclick="deleteEntry('${t.id}')">Delete</button>
+            </div></td>
+          </tr>`).join('')}</tbody></table></div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('timetable-container'), 'Failed'); }
+    }
+
+    async function saveEntry() {
+      const courseId = document.getElementById('tt-course').value;
+      const date = document.getElementById('tt-date').value;
+      const startTime = document.getElementById('tt-start').value;
+      const endTime = document.getElementById('tt-end').value;
+      const instructor = document.getElementById('tt-instructor').value.trim();
+      const mode = document.getElementById('tt-mode').value;
+      const location = document.getElementById('tt-location').value.trim();
+      const meetingUrl = document.getElementById('tt-url').value.trim();
+      if (!courseId || !date || !startTime || !endTime) { showToast('Fill required fields', 'error'); return; }
+      const btn = document.getElementById('save-tt-btn');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Saving...';
+      try {
+        const record = { course_id: courseId, date, start_time: startTime, end_time: endTime, instructor: instructor || null, learning_mode: mode, location: location || null, meeting_url: meetingUrl || null };
+        if (editingId) { await getSupabase().from('timetables').update(record).eq('id', editingId); }
+        else { await getSupabase().from('timetables').insert(record); }
+        showToast('Entry saved', 'success');
+        closeModal('timetable-modal'); resetForm(); loadTimetable();
+      } catch (error) { console.error(error); showToast('Failed', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Save Entry'; }
+    }
+
+    async function editEntry(id) {
+      const { data } = await getSupabase().from('timetables').select('*').eq('id', id).single();
+      if (!data) return;
+      editingId = id;
+      document.getElementById('modal-title').textContent = 'Edit Timetable Entry';
+      document.getElementById('tt-course').value = data.course_id;
+      document.getElementById('tt-date').value = data.date;
+      document.getElementById('tt-start').value = data.start_time;
+      document.getElementById('tt-end').value = data.end_time;
+      document.getElementById('tt-instructor').value = data.instructor || '';
+      document.getElementById('tt-mode').value = data.learning_mode || 'physical';
+      document.getElementById('tt-location').value = data.location || '';
+      document.getElementById('tt-url').value = data.meeting_url || '';
+      openModal('timetable-modal');
+    }
+
+    async function deleteEntry(id) {
+      if (!confirm('Delete this entry?')) return;
+      await getSupabase().from('timetables').delete().eq('id', id);
+      showToast('Deleted', 'success');
+      loadTimetable();
+    }
+
+    function resetForm() { editingId = null; document.getElementById('modal-title').textContent = 'Add Timetable Entry'; document.getElementById('timetable-form').reset(); }
+  </script>
+</body>
+</html>

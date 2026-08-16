@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Documents - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Documents</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div class="card" style="margin-bottom: var(--space-6);"><div class="card-body">
+          <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center;">
+            <select id="filter-status" class="form-control" style="width: auto; min-width: 150px;">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div></div>
+        <div id="documents-container"><div class="loading-state"><div class="spinner"></div><p>Loading documents...</p></div></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="review-modal">
+    <div class="modal-content">
+      <div class="modal-header"><h3>Review Document</h3><button class="modal-close" onclick="closeModal('review-modal')">&times;</button></div>
+      <div class="modal-body">
+        <div id="doc-preview" style="margin-bottom: var(--space-4);"></div>
+        <div class="form-group">
+          <label class="form-label">Rejection Reason (if rejected)</label>
+          <textarea id="rejection-reason" class="form-control" rows="2" placeholder="Optional"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('review-modal')">Cancel</button>
+        <button class="btn btn-danger" id="reject-btn">Reject</button>
+        <button class="btn btn-success" id="approve-btn">Approve</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, reviewingId = null;
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      loadDocuments();
+      document.getElementById('filter-status').addEventListener('change', loadDocuments);
+      document.getElementById('approve-btn').addEventListener('click', () => reviewDocument('approved'));
+      document.getElementById('reject-btn').addEventListener('click', () => reviewDocument('rejected'));
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadDocuments() {
+      try {
+        const status = document.getElementById('filter-status').value;
+        let query = getSupabase().from('documents').select('*, students(full_name, student_number)').order('created_at', { ascending: false });
+        if (status) query = query.eq('status', status);
+        const { data, error } = await query;
+        if (error) throw error;
+        const container = document.getElementById('documents-container');
+        if (!data || !data.length) { showEmpty(container, 'No documents found.'); return; }
+        container.innerHTML = `
+          <div class="table-container"><table class="table"><thead><tr><th>Student</th><th>Document Type</th><th>File</th><th>Uploaded</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${data.map(d => `<tr>
+            <td><div style="font-weight: 500;">${d.students?.full_name || 'N/A'}</div><div style="font-size: var(--text-xs); color: var(--text-muted);">${d.students?.student_number || ''}</div></td>
+            <td>${d.document_type.replace(/_/g, ' ').toUpperCase()}</td>
+            <td><a href="${d.file_url}" target="_blank" class="btn btn-ghost btn-sm">View File</a></td>
+            <td>${formatDate(d.created_at)}</td>
+            <td><span class="badge badge-${d.status === 'approved' ? 'success' : d.status === 'rejected' ? 'error' : 'warning'}">${d.status}</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="openReview('${d.id}', '${d.file_url}', '${d.document_type.replace(/_/g, ' ')}')">Review</button></td>
+          </tr>`).join('')}</tbody></table></div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('documents-container'), 'Failed'); }
+    }
+
+    function openReview(id, fileUrl, docType) {
+      reviewingId = id;
+      document.getElementById('doc-preview').innerHTML = `
+        <div style="padding: var(--space-4); background: var(--background); border-radius: var(--radius-lg); margin-bottom: var(--space-3);">
+          <strong>${docType.toUpperCase()}</strong>
+          <div style="margin-top: var(--space-2);">
+            <a href="${fileUrl}" target="_blank" class="btn btn-primary btn-sm">Open Document in New Tab</a>
+          </div>
+        </div>
+      `;
+      document.getElementById('rejection-reason').value = '';
+      openModal('review-modal');
+    }
+
+    async function reviewDocument(status) {
+      if (!reviewingId) return;
+      const reason = document.getElementById('rejection-reason').value.trim();
+      if (status === 'rejected' && !reason) { showToast('Please provide a rejection reason', 'error'); return; }
+      try {
+        await getSupabase().from('documents').update({
+          status,
+          rejection_reason: status === 'rejected' ? reason : null,
+          reviewed_by: currentUser.id,
+          reviewed_at: new Date().toISOString()
+        }).eq('id', reviewingId);
+        showToast(`Document ${status}`, 'success');
+        closeModal('review-modal');
+        loadDocuments();
+      } catch (error) { console.error(error); showToast('Failed', 'error'); }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fees & Payments - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/student.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">CT</div>
+        <div class="sidebar-brand">
+          <h1>ChrisTech Academy</h1>
+          <span>Student Portal</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user" id="user-menu">
+          <div class="avatar" id="user-avatar">U</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="user-name">Loading...</div>
+            <div class="sidebar-user-role">Student</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay"></div>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <h2 class="header-title">Fees & Payments</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
+          <!-- Fee Summary -->
+          <div>
+            <h3 style="margin-bottom: var(--space-4);">Fee Summary</h3>
+            <div id="fee-summary">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading fee information...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Make Payment -->
+          <div>
+            <h3 style="margin-bottom: var(--space-4);">Make a Payment</h3>
+            <div class="card">
+              <div class="card-body">
+                <form id="payment-form">
+                  <div class="form-group">
+                    <label class="form-label">Select Course</label>
+                    <select id="payment-enrollment" class="form-control" required>
+                      <option value="">Select a course to pay for</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Amount (KES)</label>
+                    <input type="number" id="payment-amount" class="form-control" placeholder="Enter amount" min="100" required>
+                    <p class="form-text" id="balance-info"></p>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-full" id="pay-btn">
+                    Pay Now via Paystack
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment History -->
+        <div style="margin-top: var(--space-6);">
+          <h3 style="margin-bottom: var(--space-4);">Payment History</h3>
+          <div id="payment-history">
+            <div class="loading-state">
+              <div class="spinner"></div>
+              <p>Loading payment history...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null;
+    let currentProfile = null;
+    let studentId = null;
+    let enrollments = [];
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase();
+      initMobileMenu();
+
+      const authResult = await checkAuth('student');
+      if (!authResult) return;
+
+      currentUser = authResult.user;
+      currentProfile = authResult.profile;
+
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+
+      // Get student record
+      const { data: student } = await getSupabase()
+        .from('students')
+        .select('id')
+        .eq('profile_id', currentUser.id)
+        .single();
+
+      if (student) {
+        studentId = student.id;
+        loadFeeData();
+        loadPaymentHistory();
+      }
+
+      // Payment form
+      document.getElementById('payment-form').addEventListener('submit', handlePayment);
+
+      // Enrollment selection
+      document.getElementById('payment-enrollment').addEventListener('change', updateBalanceInfo);
+
+      // Logout
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await auth.signOut();
+        window.location.href = '/login.html';
+      });
+    });
+
+    async function loadFeeData() {
+      try {
+        // Get enrollments with course info
+        const { data, error } = await getSupabase()
+          .from('enrollments')
+          .select(`
+            *,
+            courses (*)
+          `)
+          .eq('student_id', studentId)
+          .eq('status', 'active');
+
+        if (error) throw error;
+        enrollments = data || [];
+
+        // Get payments
+        const { data: payments } = await getSupabase()
+          .from('payments')
+          .select('enrollment_id, amount')
+          .eq('student_id', studentId)
+          .eq('status', 'successful');
+
+        // Calculate totals
+        let totalFees = 0;
+        let totalPaid = 0;
+
+        enrollments.forEach(e => {
+          totalFees += e.courses?.fee || 0;
+        });
+
+        if (payments) {
+          payments.forEach(p => totalPaid += p.amount);
+        }
+
+        const balance = calculateBalance(totalFees, totalPaid);
+        const status = calculatePaymentStatus(totalFees, totalPaid);
+
+        // Render fee summary
+        renderFeeSummary(enrollments, payments, totalFees, totalPaid, balance, status);
+
+        // Populate enrollment dropdown
+        populateEnrollmentDropdown(enrollments, payments);
+
+      } catch (error) {
+        console.error('Error loading fee data:', error);
+        showError(document.getElementById('fee-summary'), 'Failed to load fee information');
+      }
+    }
+
+    function renderFeeSummary(enrollments, payments, totalFees, totalPaid, balance, status) {
+      const container = document.getElementById('fee-summary');
+
+      if (!enrollments || enrollments.length === 0) {
+        showEmpty(container, 'No active enrollments. <a href="courses.html">Enroll in a course</a>');
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="fee-card">
+          <div class="fee-card-header">
+            <h3 class="fee-card-title">Payment Overview</h3>
+            <span class="badge badge-${status === 'paid' ? 'success' : status === 'partially_paid' ? 'warning' : 'error'}">
+              ${status === 'paid' ? 'Fully Paid' : status === 'partially_paid' ? 'Partially Paid' : 'Unpaid'}
+            </span>
+          </div>
+          <div class="fee-summary">
+            <div class="fee-row">
+              <span class="fee-row-label">Total Course Fees</span>
+              <span class="fee-row-value">${formatCurrency(totalFees)}</span>
+            </div>
+            <div class="fee-row">
+              <span class="fee-row-label">Amount Paid</span>
+              <span class="fee-row-value" style="color: var(--success);">${formatCurrency(totalPaid)}</span>
+            </div>
+            <div class="fee-row total">
+              <span class="fee-row-label">Outstanding Balance</span>
+              <span class="fee-row-value">${formatCurrency(balance)}</span>
+            </div>
+          </div>
+
+          ${enrollments.map(e => `
+            <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border);">
+              <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-2);">
+                <span style="font-weight: 500;">${e.courses?.name || 'Course'}</span>
+                <span class="badge badge-${e.status === 'active' ? 'success' : 'secondary'}">${e.status}</span>
+              </div>
+              <div style="font-size: var(--text-sm); color: var(--text-secondary);">
+                Fee: ${formatCurrency(e.courses?.fee || 0)} | Mode: ${e.learning_mode}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function populateEnrollmentDropdown(enrollments, payments) {
+      const select = document.getElementById('payment-enrollment');
+      select.innerHTML = '<option value="">Select a course to pay for</option>';
+
+      enrollments.forEach(e => {
+        const paid = payments
+          ? payments.filter(p => p.enrollment_id === e.id).reduce((sum, p) => sum + p.amount, 0)
+          : 0;
+        const balance = (e.courses?.fee || 0) - paid;
+
+        if (balance > 0) {
+          const option = document.createElement('option');
+          option.value = e.id;
+          option.textContent = `${e.courses?.name || 'Course'} - Balance: ${formatCurrency(balance)}`;
+          option.dataset.balance = balance;
+          option.dataset.fee = e.courses?.fee || 0;
+          option.dataset.paid = paid;
+          select.appendChild(option);
+        }
+      });
+    }
+
+    function updateBalanceInfo() {
+      const select = document.getElementById('payment-enrollment');
+      const option = select.options[select.selectedIndex];
+      const info = document.getElementById('balance-info');
+      const amountInput = document.getElementById('payment-amount');
+
+      if (option.value) {
+        const balance = parseFloat(option.dataset.balance);
+        info.textContent = `Outstanding balance: ${formatCurrency(balance)}`;
+        amountInput.max = balance;
+        amountInput.placeholder = `Enter amount (max ${balance})`;
+      } else {
+        info.textContent = '';
+        amountInput.max = '';
+        amountInput.placeholder = 'Enter amount';
+      }
+    }
+
+    async function handlePayment(e) {
+      e.preventDefault();
+
+      const enrollmentId = document.getElementById('payment-enrollment').value;
+      const amount = parseFloat(document.getElementById('payment-amount').value);
+      const btn = document.getElementById('pay-btn');
+
+      if (!enrollmentId || !amount) {
+        showToast('Please select a course and enter an amount', 'error');
+        return;
+      }
+
+      if (amount < CONFIG.MIN_PAYMENT) {
+        showToast(`Minimum payment is ${formatCurrency(CONFIG.MIN_PAYMENT)}`, 'error');
+        return;
+      }
+
+      const select = document.getElementById('payment-enrollment');
+      const option = select.options[select.selectedIndex];
+      const balance = parseFloat(option.dataset.balance);
+
+      if (amount > balance) {
+        showToast('Amount exceeds outstanding balance', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-sm"></span> Initializing payment...';
+
+      try {
+        // Initialize Paystack payment
+        const handler = PaystackPop.setup({
+          key: CONFIG.PAYSTACK_PUBLIC_KEY,
+          email: currentUser.email,
+          amount: amount * 100, // Paystack uses kobo/pesewas
+          currency: 'KES',
+          ref: 'CTA-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+          metadata: {
+            student_id: studentId,
+            enrollment_id: enrollmentId,
+            custom_fields: [
+              {
+                display_name: "Student ID",
+                variable_name: "student_id",
+                value: studentId
+              },
+              {
+                display_name: "Enrollment ID",
+                variable_name: "enrollment_id",
+                value: enrollmentId
+              }
+            ]
+          },
+          callback: function(response) {
+            verifyPayment(response.reference, enrollmentId, amount);
+          },
+          onClose: function() {
+            btn.disabled = false;
+            btn.textContent = 'Pay Now via Paystack';
+            showToast('Payment cancelled', 'info');
+          }
+        });
+
+        handler.openIframe();
+
+      } catch (error) {
+        console.error('Payment error:', error);
+        showToast('Failed to initialize payment', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Pay Now via Paystack';
+      }
+    }
+
+    async function verifyPayment(reference, enrollmentId, amount) {
+      const btn = document.getElementById('pay-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-sm"></span> Verifying payment...';
+
+      try {
+        // Call Supabase Edge Function to verify payment
+        const { data, error } = await getSupabase().functions.invoke('verify-payment', {
+          body: {
+            reference,
+            enrollment_id: enrollmentId,
+            amount,
+            student_id: studentId
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.status === 'success') {
+          showToast('Payment successful!', 'success');
+          // Reload fee data
+          loadFeeData();
+          loadPaymentHistory();
+        } else {
+          showToast('Payment verification failed. Please contact support.', 'error');
+        }
+
+      } catch (error) {
+        console.error('Verification error:', error);
+        showToast('Payment verification failed. Please contact support.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Pay Now via Paystack';
+        document.getElementById('payment-form').reset();
+        document.getElementById('balance-info').textContent = '';
+      }
+    }
+
+    async function loadPaymentHistory() {
+      try {
+        const { data: payments, error } = await getSupabase()
+          .from('payments')
+          .select(`
+            *,
+            enrollments (
+              courses (name)
+            )
+          `)
+          .eq('student_id', studentId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        renderPaymentHistory(payments);
+
+      } catch (error) {
+        console.error('Error loading payments:', error);
+        showError(document.getElementById('payment-history'), 'Failed to load payment history');
+      }
+    }
+
+    function renderPaymentHistory(payments) {
+      const container = document.getElementById('payment-history');
+
+      if (!payments || payments.length === 0) {
+        showEmpty(container, 'No payments recorded yet.');
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Course</th>
+                <th>Amount</th>
+                <th>Reference</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${payments.map(payment => `
+                <tr>
+                  <td>${formatDate(payment.created_at)}</td>
+                  <td>${payment.enrollments?.courses?.name || 'N/A'}</td>
+                  <td>${formatCurrency(payment.amount)}</td>
+                  <td><code style="font-size: var(--text-xs);">${payment.paystack_reference || 'N/A'}</code></td>
+                  <td>
+                    <span class="badge badge-${payment.status === 'successful' ? 'success' : payment.status === 'pending' ? 'warning' : 'error'}">
+                      ${payment.status}
+                    </span>
+                  </td>
+                  <td>
+                    ${payment.status === 'successful'
+                      ? `<button class="btn btn-ghost btn-sm" onclick="viewReceipt('${payment.id}')">Receipt</button>`
+                      : '-'
+                    }
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function viewReceipt(paymentId) {
+      // Open receipt in new window or modal
+      showToast('Receipt download coming soon', 'info');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,429 @@
+/* ChrisTech Academy - Admin Portal Styles */
+
+/* Admin Dashboard Stats */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+/* Admin Card */
+.admin-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.admin-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-card-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.admin-card-body {
+  padding: var(--space-6);
+}
+
+/* Student List Item */
+.student-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border);
+  transition: background-color var(--transition-fast);
+}
+
+.student-list-item:hover {
+  background-color: var(--surface-hover);
+}
+
+.student-list-item:last-child {
+  border-bottom: none;
+}
+
+.student-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-list-name {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+}
+
+.student-list-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.student-list-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Course Management Card */
+.course-management-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+}
+
+.course-management-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.course-management-title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+}
+
+.course-management-meta {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.course-management-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Enrollment Card */
+.enrollment-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.enrollment-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.enrollment-card-student {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+}
+
+.enrollment-card-course {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.enrollment-card-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Payment List Item */
+.payment-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.payment-list-item:last-child {
+  border-bottom: none;
+}
+
+.payment-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.payment-list-student {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+}
+
+.payment-list-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.payment-list-amount {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Report Card */
+.report-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.report-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.report-card-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.report-card-value {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: var(--space-2);
+}
+
+.report-card-change {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.report-card-change.positive {
+  color: var(--success);
+}
+
+.report-card-change.negative {
+  color: var(--error);
+}
+
+/* Admin Form Card */
+.admin-form-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.admin-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.admin-form-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+}
+
+.admin-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+}
+
+/* Document Review Card */
+.document-review-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+}
+
+.document-review-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.document-review-student {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+}
+
+.document-review-type {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.document-review-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Certificate Management */
+.certificate-management-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+}
+
+.certificate-management-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.certificate-management-student {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+}
+
+.certificate-management-course {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.certificate-management-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Attendance Record */
+.attendance-record {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+}
+
+.attendance-record-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.attendance-record-student {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+}
+
+.attendance-record-date {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.attendance-record-status {
+  flex-shrink: 0;
+}
+
+/* Timetable Entry */
+.timetable-entry {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+}
+
+.timetable-entry-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: var(--space-3);
+  background-color: var(--primary-light);
+  border-radius: var(--radius-lg);
+}
+
+.timetable-entry-start {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.timetable-entry-end {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.timetable-entry-content {
+  flex: 1;
+}
+
+.timetable-entry-title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-1);
+}
+
+.timetable-entry-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .admin-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .course-management-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .timetable-entry {
+    flex-direction: column;
+  }
+
+  .timetable-entry-time {
+    flex-direction: row;
+    min-width: auto;
+    width: 100%;
+    justify-content: space-between;
+  }
+}

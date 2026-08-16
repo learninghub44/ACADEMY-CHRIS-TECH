@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Results - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/student.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">CT</div>
+        <div class="sidebar-brand">
+          <h1>ChrisTech Academy</h1>
+          <span>Student Portal</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="avatar" id="user-avatar">U</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="user-name">Loading...</div>
+            <div class="sidebar-user-role">Student</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay"></div>
+
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <h2 class="header-title">My Results</h2>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" id="logout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div id="results-container">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading results...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null;
+    let currentProfile = null;
+    let studentId = null;
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase();
+      initMobileMenu();
+
+      const authResult = await checkAuth('student');
+      if (!authResult) return;
+
+      currentUser = authResult.user;
+      currentProfile = authResult.profile;
+
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+
+      const { data: student } = await getSupabase()
+        .from('students')
+        .select('id')
+        .eq('profile_id', currentUser.id)
+        .single();
+
+      if (student) {
+        studentId = student.id;
+        loadResults();
+      }
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await auth.signOut();
+        window.location.href = '/login.html';
+      });
+    });
+
+    async function loadResults() {
+      try {
+        const { data: results, error } = await getSupabase()
+          .from('results')
+          .select(`
+            *,
+            enrollments (
+              courses (name, course_code)
+            )
+          `)
+          .eq('student_id', studentId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const container = document.getElementById('results-container');
+
+        if (!results || results.length === 0) {
+          showEmpty(container, 'No results available yet. Results will appear after assessments.');
+          return;
+        }
+
+        // Group results by course
+        const groupedResults = {};
+        results.forEach(result => {
+          const courseName = result.enrollments?.courses?.name || 'Unknown Course';
+          if (!groupedResults[courseName]) {
+            groupedResults[courseName] = {
+              courseCode: result.enrollments?.courses?.course_code,
+              results: []
+            };
+          }
+          groupedResults[courseName].results.push(result);
+        });
+
+        let html = '';
+        Object.entries(groupedResults).forEach(([courseName, data]) => {
+          const totalMarks = data.results.reduce((sum, r) => sum + (r.marks || 0), 0);
+          const totalPossible = data.results.reduce((sum, r) => sum + (r.total_marks || 100), 0);
+          const overallPercentage = totalPossible > 0 ? Math.round((totalMarks / totalPossible) * 100) : 0;
+
+          html += `
+            <div class="card" style="margin-bottom: var(--space-6);">
+              <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <h3 style="margin-bottom: var(--space-1);">${courseName}</h3>
+                  <p style="margin: 0; font-size: var(--text-sm); color: var(--text-muted);">${data.courseCode || ''}</p>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: var(--text-2xl); font-weight: 700; color: ${overallPercentage >= 70 ? 'var(--success)' : overallPercentage >= 50 ? 'var(--warning)' : 'var(--error)'};">${overallPercentage}%</div>
+                  <div style="font-size: var(--text-xs); color: var(--text-muted);">Overall</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="table-container">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Assessment</th>
+                        <th>Marks</th>
+                        <th>Percentage</th>
+                        <th>Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${data.results.map(result => {
+                        const percentage = result.total_marks > 0 ? Math.round((result.marks / result.total_marks) * 100) : 0;
+                        return `
+                          <tr>
+                            <td style="font-weight: 500;">${result.title}</td>
+                            <td>${result.marks || 0} / ${result.total_marks || 100}</td>
+                            <td>
+                              <span style="color: ${percentage >= 70 ? 'var(--success)' : percentage >= 50 ? 'var(--warning)' : 'var(--error)'}; font-weight: 500;">
+                                ${percentage}%
+                              </span>
+                            </td>
+                            <td>${result.remarks || '-'}</td>
+                          </tr>
+                        `;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+
+      } catch (error) {
+        console.error('Error loading results:', error);
+        showError(document.getElementById('results-container'), 'Failed to load results');
+      }
+    }
+  </script>
+</body>
+</html>

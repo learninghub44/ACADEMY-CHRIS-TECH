@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <div class="auth-layout">
+    <div class="auth-container" style="max-width: 560px;">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">CT</div>
+          <h1>Create Account</h1>
+          <p>Join ChrisTech Academy today</p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="register-steps">
+          <div class="register-step active" data-step="1">
+            <div class="register-step-number">1</div>
+            <span class="register-step-label">Account</span>
+          </div>
+          <div class="register-step-connector"></div>
+          <div class="register-step" data-step="2">
+            <div class="register-step-number">2</div>
+            <span class="register-step-label">Personal</span>
+          </div>
+          <div class="register-step-connector"></div>
+          <div class="register-step" data-step="3">
+            <div class="register-step-number">3</div>
+            <span class="register-step-label">Learning</span>
+          </div>
+        </div>
+
+        <form id="register-form">
+          <!-- Step 1: Account Information -->
+          <div class="form-step active" data-step="1">
+            <div class="form-step-header">
+              <h3>Account Information</h3>
+              <p>Create your login credentials</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="email">Email Address <span class="required">*</span></label>
+              <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="password">Password <span class="required">*</span></label>
+              <input type="password" id="password" name="password" class="form-control" placeholder="Create a password" required minlength="8">
+              <div class="password-strength" id="password-strength">
+                <div class="password-strength-bar"></div>
+                <div class="password-strength-bar"></div>
+                <div class="password-strength-bar"></div>
+                <div class="password-strength-bar"></div>
+              </div>
+              <p class="password-strength-text" id="password-strength-text"></p>
+              <p class="form-text">Must be at least 8 characters with uppercase, lowercase, and number</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="confirm_password">Confirm Password <span class="required">*</span></label>
+              <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirm your password" required>
+            </div>
+
+            <div class="form-step-actions">
+              <div></div>
+              <button type="button" class="btn btn-primary next-step">Continue</button>
+            </div>
+          </div>
+
+          <!-- Step 2: Personal Information -->
+          <div class="form-step" data-step="2">
+            <div class="form-step-header">
+              <h3>Personal Information</h3>
+              <p>Tell us about yourself</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="full_name">Full Name <span class="required">*</span></label>
+              <input type="text" id="full_name" name="full_name" class="form-control" placeholder="Enter your full name" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone Number <span class="required">*</span></label>
+              <input type="tel" id="phone" name="phone" class="form-control" placeholder="e.g., 0712345678" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+              <div class="form-group">
+                <label class="form-label" for="gender">Gender</label>
+                <select id="gender" name="gender" class="form-control">
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="date_of_birth">Date of Birth</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-step-actions">
+              <button type="button" class="btn btn-secondary prev-step">Back</button>
+              <button type="button" class="btn btn-primary next-step">Continue</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Learning Preference -->
+          <div class="form-step" data-step="3">
+            <div class="form-step-header">
+              <h3>Learning Preference</h3>
+              <p>Choose how you want to learn</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Preferred Learning Mode <span class="required">*</span></label>
+              <div style="display: grid; gap: var(--space-3);">
+                <label class="form-check" style="padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); cursor: pointer; display: flex; align-items: flex-start; gap: var(--space-3);">
+                  <input type="radio" name="learning_preference" value="online" class="form-check-input" required>
+                  <div>
+                    <strong>Online Learning</strong>
+                    <p style="margin: 0; font-size: var(--text-sm); color: var(--text-secondary);">Study from anywhere with internet access</p>
+                  </div>
+                </label>
+                <label class="form-check" style="padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); cursor: pointer; display: flex; align-items: flex-start; gap: var(--space-3);">
+                  <input type="radio" name="learning_preference" value="physical" class="form-check-input">
+                  <div>
+                    <strong>Physical Learning</strong>
+                    <p style="margin: 0; font-size: var(--text-sm); color: var(--text-secondary);">Attend classes at our campus</p>
+                  </div>
+                </label>
+                <label class="form-check" style="padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); cursor: pointer; display: flex; align-items: flex-start; gap: var(--space-3);">
+                  <input type="radio" name="learning_preference" value="hybrid" class="form-check-input">
+                  <div>
+                    <strong>Hybrid Learning</strong>
+                    <p style="margin: 0; font-size: var(--text-sm); color: var(--text-secondary);">Combine online and physical classes</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-step-actions">
+              <button type="button" class="btn btn-secondary prev-step">Back</button>
+              <button type="submit" class="btn btn-primary">Create Account</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="auth-footer">
+          <p>Already have an account? <a href="login.html">Sign in</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/utilities.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Multi-step form logic
+    document.addEventListener('DOMContentLoaded', function() {
+      const steps = document.querySelectorAll('.form-step');
+      const progressSteps = document.querySelectorAll('.register-step');
+      const nextBtns = document.querySelectorAll('.next-step');
+      const prevBtns = document.querySelectorAll('.prev-step');
+      let currentStep = 1;
+
+      function showStep(step) {
+        steps.forEach(s => s.classList.remove('active'));
+        progressSteps.forEach(s => s.classList.remove('active', 'completed'));
+
+        document.querySelector(`.form-step[data-step="${step}"]`).classList.add('active');
+
+        progressSteps.forEach(s => {
+          const sStep = parseInt(s.dataset.step);
+          if (sStep < step) s.classList.add('completed');
+          if (sStep === step) s.classList.add('active');
+        });
+
+        currentStep = step;
+      }
+
+      nextBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (currentStep < 3) showStep(currentStep + 1);
+        });
+      });
+
+      prevBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (currentStep > 1) showStep(currentStep - 1);
+        });
+      });
+
+      // Password strength indicator
+      const passwordInput = document.getElementById('password');
+      const strengthBars = document.querySelectorAll('.password-strength-bar');
+      const strengthText = document.getElementById('password-strength-text');
+
+      if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+          const password = this.value;
+          let strength = 0;
+
+          if (password.length >= 8) strength++;
+          if (/[A-Z]/.test(password)) strength++;
+          if (/[a-z]/.test(password)) strength++;
+          if (/\d/.test(password)) strength++;
+
+          strengthBars.forEach((bar, i) => {
+            bar.classList.remove('active', 'medium', 'strong');
+            if (i < strength) {
+              bar.classList.add('active');
+              if (strength >= 3) bar.classList.add('medium');
+              if (strength === 4) bar.classList.add('strong');
+            }
+          });
+
+          const texts = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+          strengthText.textContent = password.length > 0 ? texts[strength] : '';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

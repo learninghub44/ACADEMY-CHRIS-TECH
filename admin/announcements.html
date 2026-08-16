@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Announcements - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Announcements</h2>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" onclick="openModal('announcement-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Announcement</button>
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div id="announcements-container">
+          <div class="loading-state"><div class="spinner"></div><p>Loading announcements...</p></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="announcement-modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header"><h3 id="modal-title">New Announcement</h3><button class="modal-close" onclick="closeModal('announcement-modal')">&times;</button></div>
+      <div class="modal-body">
+        <form id="announcement-form">
+          <input type="hidden" id="announcement-id">
+          <div class="form-group"><label class="form-label">Title <span class="required">*</span></label><input type="text" id="announcement-title" class="form-control" required></div>
+          <div class="form-group"><label class="form-label">Content <span class="required">*</span></label><textarea id="announcement-content" class="form-control" rows="5" required></textarea></div>
+          <div class="admin-form-grid">
+            <div class="form-group">
+              <label class="form-label">Target Audience</label>
+              <select id="announcement-target" class="form-control">
+                <option value="all">All Students</option>
+                <option value="course">Specific Course</option>
+                <option value="learning_mode">Learning Mode</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select id="announcement-status" class="form-control">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Published Date</label>
+            <input type="datetime-local" id="announcement-date" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('announcement-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-announcement-btn">Save Announcement</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, editingId = null;
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      loadAnnouncements();
+      document.getElementById('save-announcement-btn').addEventListener('click', saveAnnouncement);
+      document.getElementById('announcement-modal').addEventListener('click', function(e) { if (e.target === this || e.target.classList.contains('modal-close')) resetForm(); });
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadAnnouncements() {
+      try {
+        const { data, error } = await getSupabase().from('announcements').select('*').order('published_date', { ascending: false });
+        if (error) throw error;
+        const container = document.getElementById('announcements-container');
+        if (!data || !data.length) { showEmpty(container, 'No announcements yet. Click "New Announcement" to create one.'); return; }
+        container.innerHTML = `<div style="display: grid; gap: var(--space-4);">${data.map(a => `
+          <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <div><h3 style="font-size: var(--text-lg);">${a.title}</h3>
+              <p style="margin: 0; font-size: var(--text-xs); color: var(--text-muted);">Published: ${formatDateTime(a.published_date)} | Target: ${a.target_audience}</p></div>
+              <span class="badge badge-${a.status === 'active' ? 'success' : 'secondary'}">${a.status}</span>
+            </div>
+            <div class="card-body"><p style="margin: 0;">${a.content}</p></div>
+            <div class="card-footer" style="display: flex; gap: var(--space-2);">
+              <button class="btn btn-ghost btn-sm" onclick="editAnnouncement('${a.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm" onclick="toggleStatus('${a.id}', '${a.status}')">${a.status === 'active' ? 'Deactivate' : 'Activate'}</button>
+              <button class="btn btn-ghost btn-sm" style="color: var(--error);" onclick="deleteAnnouncement('${a.id}')">Delete</button>
+            </div>
+          </div>
+        `).join('')}</div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('announcements-container'), 'Failed to load'); }
+    }
+
+    async function saveAnnouncement() {
+      const title = document.getElementById('announcement-title').value.trim();
+      const content = document.getElementById('announcement-content').value.trim();
+      const target = document.getElementById('announcement-target').value;
+      const status = document.getElementById('announcement-status').value;
+      const date = document.getElementById('announcement-date').value;
+      if (!title || !content) { showToast('Please fill in all required fields', 'error'); return; }
+      const btn = document.getElementById('save-announcement-btn');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Saving...';
+      try {
+        const record = { title, content, target_audience: target, status, published_date: date ? new Date(date).toISOString() : new Date().toISOString(), created_by: currentUser.id };
+        if (editingId) { await getSupabase().from('announcements').update(record).eq('id', editingId); }
+        else { await getSupabase().from('announcements').insert(record); }
+        showToast('Announcement saved', 'success');
+        closeModal('announcement-modal'); resetForm(); loadAnnouncements();
+      } catch (error) { console.error(error); showToast('Failed to save', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Save Announcement'; }
+    }
+
+    function editAnnouncement(id) {
+      getSupabase().from('announcements').select('*').eq('id', id).single().then(({ data }) => {
+        if (!data) return;
+        editingId = id;
+        document.getElementById('modal-title').textContent = 'Edit Announcement';
+        document.getElementById('announcement-id').value = id;
+        document.getElementById('announcement-title').value = data.title;
+        document.getElementById('announcement-content').value = data.content;
+        document.getElementById('announcement-target').value = data.target_audience;
+        document.getElementById('announcement-status').value = data.status;
+        document.getElementById('announcement-date').value = data.published_date ? new Date(data.published_date).toISOString().slice(0, 16) : '';
+        openModal('announcement-modal');
+      });
+    }
+
+    async function toggleStatus(id, current) {
+      await getSupabase().from('announcements').update({ status: current === 'active' ? 'inactive' : 'active' }).eq('id', id);
+      loadAnnouncements();
+    }
+
+    async function deleteAnnouncement(id) {
+      if (!confirm('Delete this announcement?')) return;
+      await getSupabase().from('announcements').delete().eq('id', id);
+      showToast('Announcement deleted', 'success');
+      loadAnnouncements();
+    }
+
+    function resetForm() {
+      editingId = null;
+      document.getElementById('modal-title').textContent = 'New Announcement';
+      document.getElementById('announcement-form').reset();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Quizzes - ChrisTech Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">CT</div><div class="sidebar-brand"><h1>ChrisTech Academy</h1><span>Admin Portal</span></div></div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer"><div class="sidebar-user"><div class="avatar" id="user-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name">Loading...</div><div class="sidebar-user-role">Administrator</div></div></div></div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <main class="main">
+      <header class="header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h2 class="header-title">Manage Quizzes</h2>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" onclick="openModal('quiz-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Quiz</button>
+          <button class="header-btn" id="logout-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+        </div>
+      </header>
+      <div class="content">
+        <div id="quizzes-container"><div class="loading-state"><div class="spinner"></div><p>Loading quizzes...</p></div></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="quiz-modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header"><h3 id="modal-title">Add Quiz</h3><button class="modal-close" onclick="closeModal('quiz-modal')">&times;</button></div>
+      <div class="modal-body">
+        <form id="quiz-form">
+          <input type="hidden" id="quiz-id">
+          <div class="form-group"><label class="form-label">Course <span class="required">*</span></label><select id="quiz-course" class="form-control" required></select></div>
+          <div class="form-group"><label class="form-label">Title <span class="required">*</span></label><input type="text" id="quiz-title" class="form-control" required></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea id="quiz-description" class="form-control" rows="2"></textarea></div>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Time Limit (min)</label><input type="number" id="quiz-time" class="form-control" placeholder="No limit"></div>
+            <div class="form-group"><label class="form-label">Passing Score (%)</label><input type="number" id="quiz-pass" class="form-control" value="50" min="0" max="100"></div>
+          </div>
+          <div class="form-group"><label class="form-check"><input type="checkbox" id="quiz-published" class="form-check-input" checked><span class="form-check-label">Published</span></label></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('quiz-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-quiz-btn">Save Quiz</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/utilities.js"></script>
+  <script>
+    let currentUser = null, currentProfile = null, editingId = null;
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase(); initMobileMenu();
+      const authResult = await checkAuth('admin');
+      if (!authResult) return;
+      currentUser = authResult.user; currentProfile = authResult.profile;
+      initSidebar(currentProfile);
+      document.getElementById('user-name').textContent = currentProfile.full_name;
+      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      await loadCourses();
+      loadQuizzes();
+      document.getElementById('save-quiz-btn').addEventListener('click', saveQuiz);
+      document.getElementById('quiz-modal').addEventListener('click', function(e) { if (e.target === this || e.target.classList.contains('modal-close')) resetForm(); });
+      document.getElementById('logout-btn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/login.html'; });
+    });
+
+    async function loadCourses() {
+      const { data } = await getSupabase().from('courses').select('id, name').order('name');
+      document.getElementById('quiz-course').innerHTML = (data || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    async function loadQuizzes() {
+      try {
+        const { data, error } = await getSupabase().from('quizzes').select('*, courses(name), quiz_questions(id)').order('created_at', { ascending: false });
+        if (error) throw error;
+        const container = document.getElementById('quizzes-container');
+        if (!data || !data.length) { showEmpty(container, 'No quizzes yet.'); return; }
+        container.innerHTML = `
+          <div class="table-container"><table class="table"><thead><tr><th>Title</th><th>Course</th><th>Questions</th><th>Pass Score</th><th>Published</th><th>Actions</th></tr></thead>
+          <tbody>${data.map(q => `<tr>
+            <td style="font-weight: 500;">${q.title}</td>
+            <td>${q.courses?.name || 'N/A'}</td>
+            <td>${q.quiz_questions?.length || 0}</td>
+            <td>${q.passing_score}%</td>
+            <td><span class="badge badge-${q.is_published ? 'success' : 'secondary'}">${q.is_published ? 'Published' : 'Draft'}</span></td>
+            <td><div style="display: flex; gap: var(--space-2);">
+              <button class="btn btn-ghost btn-sm" onclick="editQuiz('${q.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm" onclick="manageQuestions('${q.id}')">Questions</button>
+            </div></td>
+          </tr>`).join('')}</tbody></table></div>`;
+      } catch (error) { console.error(error); showError(document.getElementById('quizzes-container'), 'Failed'); }
+    }
+
+    async function saveQuiz() {
+      const courseId = document.getElementById('quiz-course').value;
+      const title = document.getElementById('quiz-title').value.trim();
+      const description = document.getElementById('quiz-description').value.trim();
+      const timeLimit = document.getElementById('quiz-time').value ? parseInt(document.getElementById('quiz-time').value) : null;
+      const passingScore = parseFloat(document.getElementById('quiz-pass').value) || 50;
+      const isPublished = document.getElementById('quiz-published').checked;
+      if (!courseId || !title) { showToast('Course and Title required', 'error'); return; }
+      const btn = document.getElementById('save-quiz-btn');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Saving...';
+      try {
+        const record = { course_id: courseId, title, description: description || null, time_limit: timeLimit, passing_score: passingScore, is_published: isPublished };
+        if (editingId) { await getSupabase().from('quizzes').update(record).eq('id', editingId); }
+        else { await getSupabase().from('quizzes').insert(record); }
+        showToast('Quiz saved', 'success');
+        closeModal('quiz-modal'); resetForm(); loadQuizzes();
+      } catch (error) { console.error(error); showToast('Failed', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Save Quiz'; }
+    }
+
+    async function editQuiz(id) {
+      const { data } = await getSupabase().from('quizzes').select('*').eq('id', id).single();
+      if (!data) return;
+      editingId = id;
+      document.getElementById('modal-title').textContent = 'Edit Quiz';
+      document.getElementById('quiz-course').value = data.course_id;
+      document.getElementById('quiz-title').value = data.title;
+      document.getElementById('quiz-description').value = data.description || '';
+      document.getElementById('quiz-time').value = data.time_limit || '';
+      document.getElementById('quiz-pass').value = data.passing_score || 50;
+      document.getElementById('quiz-published').checked = data.is_published;
+      openModal('quiz-modal');
+    }
+
+    function manageQuestions(quizId) { window.location.href = `quiz-questions.html?quiz=${quizId}`; }
+    function resetForm() { editingId = null; document.getElementById('modal-title').textContent = 'Add Quiz'; document.getElementById('quiz-form').reset(); document.getElementById('quiz-published').checked = true; }
+  </script>
+</body>
+</html>
