@@ -164,48 +164,18 @@ const AuthModule = {
     submitBtn.innerHTML = '<span class="spinner-sm"></span> Creating account...';
 
     try {
-      // Sign up with Supabase Auth
-      const { user } = await auth.signUp(email, password, {
+      // Sign up with Supabase Auth. The profiles + students rows are
+      // created server-side by the on_auth_user_created trigger
+      // (see supabase/migrations/005_robust_signup_trigger.sql), which
+      // reads this metadata — so no separate client-side insert is
+      // needed (and doing one would hit a duplicate-key conflict).
+      await auth.signUp(email, password, {
         full_name: fullName,
-        phone: phone
+        phone: phone,
+        gender: gender || null,
+        date_of_birth: dateOfBirth || null,
+        learning_preference: learningPreference || CONFIG.LEARNING_MODES.ONLINE
       });
-
-      // Generate student number
-      const studentNumber = await generateStudentNumber();
-
-      // Create profile
-      const { error: profileError } = await getSupabase()
-        .from('profiles')
-        .insert({
-          user_id: user.id,
-          email: email,
-          full_name: fullName,
-          phone: phone,
-          gender: gender || null,
-          date_of_birth: dateOfBirth || null,
-          learning_preference: learningPreference || CONFIG.LEARNING_MODES.ONLINE,
-          role: 'student',
-          status: CONFIG.STATUS.ACTIVE
-        });
-
-      if (profileError) throw profileError;
-
-      // Create student record
-      const { error: studentError } = await getSupabase()
-        .from('students')
-        .insert({
-          profile_id: user.id,
-          student_number: studentNumber,
-          full_name: fullName,
-          email: email,
-          phone: phone,
-          gender: gender || null,
-          date_of_birth: dateOfBirth || null,
-          learning_preference: learningPreference || CONFIG.LEARNING_MODES.ONLINE,
-          status: CONFIG.STATUS.ACTIVE
-        });
-
-      if (studentError) throw studentError;
 
       showToast('Account created successfully! Please check your email for verification.', 'success');
 
