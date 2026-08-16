@@ -8,6 +8,14 @@
   margin-bottom: var(--space-6);
 }
 
+/* Dashboard main layout (courses + sidebar) */
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
 /* Course Card */
 .course-card {
   background-color: var(--surface);
@@ -564,6 +572,10 @@
   }
 
   .certificate-details {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-main-grid {
     grid-template-columns: 1fr;
   }
 }
