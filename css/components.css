@@ -956,3 +956,11 @@ select.form-control {
     white-space: nowrap;
   }
 }
+.stat-card {
+  min-width: 0;
+}
+
+.stat-card-value {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
