@@ -438,18 +438,50 @@
       opacity: 1;
     }
 
+    .landing-footer-contact-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-sm);
+      opacity: 0.85;
+      margin-bottom: var(--space-3);
+      color: var(--text-inverse);
+    }
+
+    .landing-footer-contact-item:hover {
+      opacity: 1;
+    }
+
+    .landing-footer-contact-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: 0.8;
+    }
+
     .landing-footer-bottom {
       max-width: 1024px;
       margin: 0 auto;
       padding-top: var(--space-6);
       border-top: 1px solid rgba(255, 255, 255, 0.15);
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      flex-wrap: wrap;
     }
 
     .landing-footer-bottom p {
       font-size: var(--text-sm);
       opacity: 0.6;
       margin: 0;
+    }
+
+    @media (max-width: 480px) {
+      .landing-footer-bottom {
+        justify-content: center;
+        text-align: center;
+      }
     }
 
     @media (max-width: 900px) {
@@ -657,6 +689,7 @@
       </div>
       <div class="landing-footer-bottom">
         <p>&copy; 2026 ChrisTech Academy. All rights reserved.</p>
+        <p>support@christech.co.ke &middot; +254 701 059 192</p>
       </div>
     </footer>
   </div>
@@ -682,9 +715,18 @@
     // Footer contact details from config
     document.getElementById('footerContact').innerHTML = `
       <h4>Contact</h4>
-      <p>${CONFIG.ACADEMY.email}</p>
-      <p>${CONFIG.ACADEMY.phone}</p>
-      <p>${CONFIG.ACADEMY.address}</p>
+      <a class="landing-footer-contact-item" href="mailto:${CONFIG.ACADEMY.email}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>
+        ${CONFIG.ACADEMY.email}
+      </a>
+      <a class="landing-footer-contact-item" href="tel:${CONFIG.ACADEMY.phone.replace(/\s+/g, '')}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.34 1.79.65 2.65a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.43-1.43a2 2 0 0 1 2.11-.45c.86.31 1.75.53 2.65.65A2 2 0 0 1 22 16.92z"/></svg>
+        ${CONFIG.ACADEMY.phone}
+      </a>
+      <div class="landing-footer-contact-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        ${CONFIG.ACADEMY.address}
+      </div>
     `;
 
     // Load active courses from Supabase (public read policy: "Anyone can view active courses")

@@ -36,10 +36,10 @@ const CONFIG = {
   ACADEMY: {
     name: 'ChrisTech Academy',
     tagline: 'Empowering Digital Skills',
-    email: 'info@christechacademy.com',
-    phone: '+254 700 000 000',
+    email: 'support@christech.co.ke',
+    phone: '+254 701 059 192',
     address: 'Nairobi, Kenya',
-    website: 'https://christechacademy.com'
+    website: 'https://christech.co.ke'
   },
 
   // Status Constants
