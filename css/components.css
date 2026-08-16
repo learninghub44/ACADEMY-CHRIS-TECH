@@ -301,6 +301,7 @@ select.form-control {
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   box-shadow: var(--shadow-sm);
+  min-width: 0;
 }
 
 .stat-card-header {
@@ -342,6 +343,8 @@ select.form-control {
   color: var(--text);
   line-height: 1;
   margin-bottom: var(--space-1);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .stat-card-label {
