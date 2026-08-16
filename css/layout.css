@@ -6,13 +6,20 @@
   min-height: 100vh;
 }
 
+/* Prevent background scroll while mobile sidebar drawer is open */
+body.no-scroll {
+  overflow: hidden;
+}
+
 /* Sidebar */
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   width: var(--sidebar-width);
+  max-width: 85vw;
   height: 100vh;
+  height: 100dvh;
   background-color: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
@@ -400,7 +407,4 @@
     justify-content: center;
     flex-wrap: wrap;
   }
-}
-.section {
-  min-width: 0;
 }
