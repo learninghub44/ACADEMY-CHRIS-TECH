@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ChrisTech Academy offers practical computer skills training online, in person, or hybrid — with certified courses and flexible fee payment via M-Pesa and card.">
   <title>ChrisTech Academy - Empowering Digital Skills</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,6 +48,7 @@
       font-weight: 700;
       font-size: var(--text-lg);
       border-radius: var(--radius-lg);
+      flex-shrink: 0;
     }
 
     .landing-logo-text {
@@ -58,27 +60,103 @@
     .landing-nav {
       display: flex;
       align-items: center;
-      gap: var(--space-4);
+      gap: var(--space-6);
+    }
+
+    .landing-nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-5);
+    }
+
+    .landing-nav-links a {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .landing-nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .landing-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .landing-nav-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .landing-nav-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .landing-mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: var(--space-1);
+      padding: var(--space-4) var(--space-6);
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .landing-mobile-menu.is-open {
+      display: flex;
+    }
+
+    .landing-mobile-menu a {
+      padding: var(--space-3) 0;
+      font-size: var(--text-base);
+      font-weight: 500;
+      color: var(--text);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .landing-mobile-menu a:last-child {
+      border-bottom: none;
     }
 
     .landing-hero {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: var(--space-12) var(--space-6);
       background-color: var(--primary);
       color: var(--text-inverse);
       text-align: center;
     }
 
+    .landing-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background-color: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 500;
+      margin-bottom: var(--space-6);
+    }
+
     .landing-hero-content {
-      max-width: 640px;
+      max-width: 680px;
+      margin: 0 auto;
     }
 
     .landing-hero h1 {
       font-size: var(--text-4xl);
       font-weight: 700;
+      line-height: 1.15;
       margin-bottom: var(--space-4);
       color: var(--text-inverse);
     }
@@ -113,28 +191,32 @@
       color: var(--primary);
     }
 
-    .landing-features {
+    .landing-section {
       padding: var(--space-12) var(--space-6);
-      background-color: var(--background);
     }
 
-    .landing-features-header {
+    .landing-section-alt {
+      background-color: var(--surface);
+    }
+
+    .landing-section-header {
       text-align: center;
       margin-bottom: var(--space-10);
     }
 
-    .landing-features-header h2 {
+    .landing-section-header h2 {
       font-size: var(--text-3xl);
       margin-bottom: var(--space-4);
     }
 
-    .landing-features-header p {
+    .landing-section-header p {
       font-size: var(--text-lg);
       color: var(--text-secondary);
       max-width: 600px;
       margin: 0 auto;
     }
 
+    /* Features */
     .landing-features-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -171,22 +253,225 @@
       margin: 0;
     }
 
-    .landing-footer {
-      padding: var(--space-6);
-      background-color: var(--surface);
-      border-top: 1px solid var(--border);
-      text-align: center;
+    /* How it works */
+    .landing-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-8);
+      max-width: 1024px;
+      margin: 0 auto;
     }
 
-    .landing-footer p {
+    .landing-step {
+      position: relative;
+      padding: var(--space-6);
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+
+    .landing-step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      margin-bottom: var(--space-4);
+      background-color: var(--secondary);
+      color: var(--text);
+      font-weight: 700;
+      font-size: var(--text-base);
+      border-radius: var(--radius-full);
+    }
+
+    .landing-step h3 {
+      font-size: var(--text-lg);
+      margin-bottom: var(--space-2);
+    }
+
+    .landing-step p {
       font-size: var(--text-sm);
-      color: var(--text-muted);
+      color: var(--text-secondary);
       margin: 0;
     }
 
+    /* Courses */
+    .landing-courses-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .landing-course-card {
+      display: flex;
+      flex-direction: column;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .landing-course-body {
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      flex: 1;
+    }
+
+    .landing-course-mode {
+      display: inline-flex;
+      align-self: flex-start;
+      padding: 0.25rem 0.625rem;
+      background-color: var(--secondary-light);
+      color: var(--secondary-hover);
+      font-size: var(--text-xs);
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      text-transform: capitalize;
+    }
+
+    .landing-course-card h3 {
+      font-size: var(--text-lg);
+      margin: 0;
+    }
+
+    .landing-course-card p {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin: 0;
+      flex: 1;
+    }
+
+    .landing-course-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border-light);
+    }
+
+    .landing-course-fee {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .landing-course-duration {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .landing-courses-empty,
+    .landing-courses-loading {
+      text-align: center;
+      color: var(--text-secondary);
+      padding: var(--space-8);
+      grid-column: 1 / -1;
+    }
+
+    .landing-courses-footer {
+      text-align: center;
+      margin-top: var(--space-8);
+    }
+
+    /* CTA */
+    .landing-cta {
+      padding: var(--space-12) var(--space-6);
+      background-color: var(--secondary-light);
+      text-align: center;
+    }
+
+    .landing-cta h2 {
+      font-size: var(--text-2xl);
+      margin-bottom: var(--space-3);
+    }
+
+    .landing-cta p {
+      font-size: var(--text-base);
+      color: var(--text-secondary);
+      max-width: 500px;
+      margin: 0 auto var(--space-6);
+    }
+
+    /* Footer */
+    .landing-footer {
+      padding: var(--space-10) var(--space-6) var(--space-6);
+      background-color: var(--primary-dark);
+      color: var(--text-inverse);
+    }
+
+    .landing-footer-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: var(--space-8);
+      max-width: 1024px;
+      margin: 0 auto var(--space-8);
+    }
+
+    .landing-footer-brand p {
+      font-size: var(--text-sm);
+      opacity: 0.75;
+      margin-top: var(--space-3);
+      line-height: 1.6;
+    }
+
+    .landing-footer-col h4 {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      margin-bottom: var(--space-3);
+      opacity: 0.9;
+    }
+
+    .landing-footer-col a,
+    .landing-footer-col p {
+      display: block;
+      font-size: var(--text-sm);
+      opacity: 0.75;
+      margin-bottom: var(--space-2);
+      color: var(--text-inverse);
+    }
+
+    .landing-footer-col a:hover {
+      opacity: 1;
+    }
+
+    .landing-footer-bottom {
+      max-width: 1024px;
+      margin: 0 auto;
+      padding-top: var(--space-6);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      text-align: center;
+    }
+
+    .landing-footer-bottom p {
+      font-size: var(--text-sm);
+      opacity: 0.6;
+      margin: 0;
+    }
+
+    @media (max-width: 900px) {
+      .landing-features-grid,
+      .landing-steps,
+      .landing-courses-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .landing-footer-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
     @media (max-width: 768px) {
-      .landing-nav {
+      .landing-nav-links,
+      .landing-nav-actions {
         display: none;
+      }
+
+      .landing-nav-toggle {
+        display: flex;
       }
 
       .landing-hero h1 {
@@ -197,8 +482,19 @@
         flex-direction: column;
       }
 
-      .landing-features-grid {
+      .landing-hero-actions .btn {
+        width: 100%;
+      }
+
+      .landing-features-grid,
+      .landing-steps,
+      .landing-courses-grid {
         grid-template-columns: 1fr;
+      }
+
+      .landing-footer-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
       }
     }
   </style>
@@ -211,14 +507,40 @@
         <span class="landing-logo-text">ChrisTech Academy</span>
       </div>
       <nav class="landing-nav">
-        <a href="login.html" class="btn btn-ghost">Sign In</a>
-        <a href="register.html" class="btn btn-primary">Register Now</a>
+        <div class="landing-nav-links">
+          <a href="#courses">Courses</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#why-us">Why us</a>
+        </div>
+        <div class="landing-nav-actions">
+          <a href="login.html" class="btn btn-ghost">Sign In</a>
+          <a href="register.html" class="btn btn-primary">Register Now</a>
+        </div>
       </nav>
+      <button type="button" class="landing-nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobileMenu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
     </header>
+
+    <div class="landing-mobile-menu" id="mobileMenu">
+      <a href="#courses">Courses</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#why-us">Why us</a>
+      <a href="login.html">Sign In</a>
+      <a href="register.html" class="btn btn-primary" style="justify-content:center; margin-top: var(--space-2);">Register Now</a>
+    </div>
 
     <main>
       <section class="landing-hero">
         <div class="landing-hero-content">
+          <span class="landing-hero-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+            Certified computer skills training in Kenya
+          </span>
           <h1>Empowering Digital Skills for Tomorrow</h1>
           <p>Join ChrisTech Academy and gain practical computer skills through online, physical, or hybrid learning modes. Start your journey to digital excellence today.</p>
           <div class="landing-hero-actions">
@@ -228,9 +550,46 @@
         </div>
       </section>
 
-      <section class="landing-features">
-        <div class="landing-features-header">
-          <h2>Why Choose ChrisTech Academy?</h2>
+      <section class="landing-section" id="courses">
+        <div class="landing-section-header">
+          <h2>Explore our courses</h2>
+          <p>Practical, career-focused programs you can start online, in person, or a mix of both.</p>
+        </div>
+        <div class="landing-courses-grid" id="coursesGrid">
+          <p class="landing-courses-loading">Loading courses...</p>
+        </div>
+        <div class="landing-courses-footer">
+          <a href="register.html" class="btn btn-primary btn-lg">Browse all courses &amp; enroll</a>
+        </div>
+      </section>
+
+      <section class="landing-section landing-section-alt" id="how-it-works">
+        <div class="landing-section-header">
+          <h2>How it works</h2>
+          <p>From sign-up to certificate in three straightforward steps.</p>
+        </div>
+        <div class="landing-steps">
+          <div class="landing-step">
+            <span class="landing-step-number">1</span>
+            <h3>Create your account</h3>
+            <p>Register with your details and pick your preferred learning mode — online, physical, or hybrid.</p>
+          </div>
+          <div class="landing-step">
+            <span class="landing-step-number">2</span>
+            <h3>Enroll and pay securely</h3>
+            <p>Choose a course and complete your fee payment via M-Pesa or card, verified instantly.</p>
+          </div>
+          <div class="landing-step">
+            <span class="landing-step-number">3</span>
+            <h3>Learn and get certified</h3>
+            <p>Access lessons, assignments, and quizzes, then earn a certificate on completion.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="landing-section" id="why-us">
+        <div class="landing-section-header">
+          <h2>Why choose ChrisTech Academy?</h2>
           <p>We offer comprehensive computer training designed to equip you with practical skills for the modern world.</p>
         </div>
         <div class="landing-features-grid">
@@ -267,11 +626,117 @@
           </div>
         </div>
       </section>
+
+      <section class="landing-cta">
+        <h2>Ready to build your digital skills?</h2>
+        <p>Registration takes less than five minutes. Pick a course, pay securely, and start learning today.</p>
+        <a href="register.html" class="btn btn-primary btn-lg">Register Now</a>
+      </section>
     </main>
 
     <footer class="landing-footer">
-      <p>&copy; 2026 ChrisTech Academy. All rights reserved.</p>
+      <div class="landing-footer-grid">
+        <div class="landing-footer-brand">
+          <div class="landing-logo">
+            <div class="landing-logo-icon">CT</div>
+            <span class="landing-logo-text" style="color: var(--text-inverse);">ChrisTech Academy</span>
+          </div>
+          <p>Practical computer skills training for the modern world, delivered online, physical, or hybrid — with certified outcomes.</p>
+        </div>
+        <div class="landing-footer-col">
+          <h4>Quick links</h4>
+          <a href="#courses">Courses</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="register.html">Register</a>
+          <a href="login.html">Sign In</a>
+        </div>
+        <div class="landing-footer-col" id="footerContact">
+          <h4>Contact</h4>
+          <p>Loading contact details...</p>
+        </div>
+      </div>
+      <div class="landing-footer-bottom">
+        <p>&copy; 2026 ChrisTech Academy. All rights reserved.</p>
+      </div>
     </footer>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    // Mobile menu toggle
+    const navToggle = document.getElementById('navToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    navToggle.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('is-open');
+      navToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.remove('is-open');
+        navToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Footer contact details from config
+    document.getElementById('footerContact').innerHTML = `
+      <h4>Contact</h4>
+      <p>${CONFIG.ACADEMY.email}</p>
+      <p>${CONFIG.ACADEMY.phone}</p>
+      <p>${CONFIG.ACADEMY.address}</p>
+    `;
+
+    // Load active courses from Supabase (public read policy: "Anyone can view active courses")
+    async function loadCourses() {
+      const grid = document.getElementById('coursesGrid');
+      const client = getSupabase();
+      if (!client) {
+        grid.innerHTML = '<p class="landing-courses-empty">Course listings are temporarily unavailable. Please check back soon.</p>';
+        return;
+      }
+
+      try {
+        const { data: courses, error } = await client
+          .from('courses')
+          .select('name, description, duration, fee, learning_modes')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(6);
+
+        if (error) throw error;
+
+        if (!courses || courses.length === 0) {
+          grid.innerHTML = '<p class="landing-courses-empty">New courses are being added soon. Register now to get notified.</p>';
+          return;
+        }
+
+        grid.innerHTML = courses.map(course => `
+          <div class="landing-course-card">
+            <div class="landing-course-body">
+              <span class="landing-course-mode">${course.learning_modes || 'online'}</span>
+              <h3>${escapeHtml(course.name)}</h3>
+              <p>${escapeHtml(course.description || 'Practical, hands-on training designed for real-world skills.')}</p>
+              <div class="landing-course-footer">
+                <span class="landing-course-fee">KES ${Number(course.fee).toLocaleString()}</span>
+                <span class="landing-course-duration">${escapeHtml(course.duration || '')}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load courses:', err);
+        grid.innerHTML = '<p class="landing-courses-empty">Course listings are temporarily unavailable. Please check back soon.</p>';
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    loadCourses();
+  </script>
 </body>
 </html>
