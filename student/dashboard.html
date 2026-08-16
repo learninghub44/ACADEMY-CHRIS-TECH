@@ -198,7 +198,7 @@
 
       // Update user info
       document.getElementById('user-name').textContent = currentProfile.full_name;
-      document.getElementById('user-avatar').textContent = currentProfile.full_name.charAt(0).toUpperCase();
+      document.getElementById('user-avatar').innerHTML = `<img src="${getAvatarUrl(currentProfile.full_name)}" alt="${currentProfile.full_name}">`;
 
       // Load dashboard data
       loadDashboardData();
