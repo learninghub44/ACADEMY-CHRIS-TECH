@@ -3,11 +3,11 @@
 
 const CONFIG = {
   // Supabase Configuration (Public Anon Key only)
-  SUPABASE_URL: 'YOUR_SUPABASE_URL',
-  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
+  SUPABASE_URL: 'https://jpzyczuqnwjuybzjrrwn.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_Q_lQpXCdECMLfMHDg5kIDg_nfnUmEOa',
 
   // Paystack Configuration (Public Key only)
-  PAYSTACK_PUBLIC_KEY: 'YOUR_PAYSTACK_PUBLIC_KEY',
+  PAYSTACK_PUBLIC_KEY: 'pk_live_66e9a8d01db43b7d893731df4386f9bfc2d67697',
 
   // Application Settings
   APP_NAME: 'ChrisTech Academy',
