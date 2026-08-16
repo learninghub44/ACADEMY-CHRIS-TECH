@@ -1,5 +1,12 @@
 // ChrisTech Academy - Utility Functions
 
+// Generate a unique, clean geometric avatar image URL for a given name/id
+// Uses DiceBear's "shapes" style: professional, minimal, abstract geometric patterns
+function getAvatarUrl(seed) {
+  const safeSeed = encodeURIComponent(seed || 'user');
+  return `https://api.dicebear.com/9.x/shapes/svg?seed=${safeSeed}&backgroundType=gradientLinear&backgroundColor=eef2ff,e0e7ff`;
+}
+
 // Format currency
 function formatCurrency(amount) {
   return `${CONFIG.CURRENCY_SYMBOL} ${Number(amount).toLocaleString()}`;
