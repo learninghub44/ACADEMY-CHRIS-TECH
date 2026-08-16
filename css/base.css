@@ -2,46 +2,46 @@
 
 /* CSS Variables */
 :root {
-  /* Primary Colors */
-  --primary: #1e40af;
-  --primary-hover: #1e3a8a;
-  --primary-light: #dbeafe;
-  --primary-dark: #1e3a8a;
+  /* Primary Colors — Deep Plum */
+  --primary: #4a1e3d;
+  --primary-hover: #37162d;
+  --primary-light: #f0e2ec;
+  --primary-dark: #2c1224;
 
-  /* Secondary Colors */
-  --secondary: #475569;
-  --secondary-hover: #334155;
-  --secondary-light: #f1f5f9;
+  /* Secondary Colors — Warm Sand */
+  --secondary: #b8895a;
+  --secondary-hover: #9c703f;
+  --secondary-light: #f5ebdc;
 
-  /* Neutral Colors */
-  --background: #f8fafc;
-  --surface: #ffffff;
-  --surface-hover: #f8fafc;
-  --border: #e2e8f0;
-  --border-light: #f1f5f9;
+  /* Neutral Colors — warm, sand-tinted */
+  --background: #faf5ee;
+  --surface: #fffdf9;
+  --surface-hover: #f5ede0;
+  --border: #e6d9c4;
+  --border-light: #f0e6d4;
 
   /* Text Colors */
-  --text: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-inverse: #ffffff;
+  --text: #2a1a22;
+  --text-secondary: #6b5647;
+  --text-muted: #a3907c;
+  --text-inverse: #fffdf9;
 
   /* Status Colors */
-  --success: #16a34a;
-  --success-light: #dcfce7;
-  --success-dark: #166534;
+  --success: #4c7a4a;
+  --success-light: #e3ecdf;
+  --success-dark: #315231;
 
-  --warning: #d97706;
-  --warning-light: #fef3c7;
-  --warning-dark: #92400e;
+  --warning: #b8722d;
+  --warning-light: #f6e6d2;
+  --warning-dark: #7a4a17;
 
-  --error: #dc2626;
-  --error-light: #fee2e2;
-  --error-dark: #991b1b;
+  --error: #a5333c;
+  --error-light: #f2dcde;
+  --error-dark: #6e1f26;
 
-  --info: #2563eb;
-  --info-light: #dbeafe;
-  --info-dark: #1e40af;
+  --info: #6b4a5f;
+  --info-light: #ece0e7;
+  --info-dark: #4a1e3d;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
