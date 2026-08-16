@@ -71,56 +71,127 @@
       </header>
 
       <div class="content">
-        <!-- Stats -->
-        <div class="dashboard-stats" id="dashboard-stats">
-          <div class="stat-card">
-            <div class="stat-card-header">
-              <div class="stat-card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        <!-- Finance Banner Cards -->
+        <div class="finance-grid" id="finance-grid">
+          <div class="finance-card billed">
+            <div class="finance-card-top">
+              <div class="finance-card-text">
+                <div class="finance-card-label">Total Billed</div>
+                <div class="finance-card-value" id="stat-billed">KES 0</div>
+              </div>
+              <div class="finance-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L3 3v6.59a2 2 0 0 0 .59 1.42l9.58 9.58a2 2 0 0 0 2.82 0l4.6-4.6a2 2 0 0 0 0-2.58z"/>
+                  <circle cx="7.5" cy="7.5" r="1.5"/>
                 </svg>
               </div>
             </div>
-            <div class="stat-card-value" id="stat-courses">0</div>
-            <div class="stat-card-label">Enrolled Courses</div>
+            <a href="fees.html" class="finance-card-link">
+              View Details
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
           </div>
-          <div class="stat-card">
-            <div class="stat-card-header">
-              <div class="stat-card-icon success">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+          <div class="finance-card paid">
+            <div class="finance-card-top">
+              <div class="finance-card-text">
+                <div class="finance-card-label">Total Paid</div>
+                <div class="finance-card-value" id="stat-paid">KES 0</div>
+              </div>
+              <div class="finance-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                   <polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
               </div>
             </div>
-            <div class="stat-card-value" id="stat-progress">0%</div>
-            <div class="stat-card-label">Average Progress</div>
+            <a href="payments.html" class="finance-card-link">
+              View Details
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
           </div>
-          <div class="stat-card">
-            <div class="stat-card-header">
-              <div class="stat-card-icon warning">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                  <line x1="1" y1="10" x2="23" y2="10"/>
-                </svg>
+
+          <div class="finance-card balance">
+            <div class="finance-card-top">
+              <div class="finance-card-text">
+                <div class="finance-card-label">Balance</div>
+                <div class="finance-card-value" id="stat-balance">KES 0</div>
               </div>
-            </div>
-            <div class="stat-card-value" id="stat-paid">KES 0</div>
-            <div class="stat-card-label">Total Paid</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-header">
-              <div class="stat-card-icon error">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <div class="finance-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
               </div>
             </div>
-            <div class="stat-card-value" id="stat-balance">KES 0</div>
-            <div class="stat-card-label">Outstanding Balance</div>
+            <a href="fees.html" class="finance-card-link">
+              View Details
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- User Profile + Personal Information -->
+        <div class="profile-info-grid">
+          <div class="user-profile-card">
+            <div class="user-profile-avatar" id="profile-avatar">
+              <img src="" alt="" id="profile-avatar-img">
+            </div>
+            <div class="user-profile-name" id="profile-name">Loading...</div>
+            <div class="user-profile-number" id="profile-number"></div>
+
+            <div class="user-profile-programme">
+              <div class="user-profile-programme-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                  <path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/>
+                </svg>
+                Programme
+              </div>
+              <div class="user-profile-programme-value" id="profile-programme">—</div>
+            </div>
+          </div>
+
+          <div class="personal-info-card">
+            <div class="personal-info-header">
+              <h3>Personal Information</h3>
+              <a href="profile.html" class="btn btn-primary btn-sm">Update Profile</a>
+            </div>
+            <div class="info-grid" id="personal-info-grid">
+              <div>
+                <div class="info-row-label">Student No:</div>
+                <div class="info-row-value" id="info-student-number">—</div>
+              </div>
+              <div>
+                <div class="info-row-label">Full Name:</div>
+                <div class="info-row-value" id="info-full-name">—</div>
+              </div>
+              <div>
+                <div class="info-row-label">Gender:</div>
+                <div class="info-row-value" id="info-gender">—</div>
+              </div>
+              <div>
+                <div class="info-row-label">Date of Birth:</div>
+                <div class="info-row-value" id="info-dob">—</div>
+              </div>
+              <div>
+                <div class="info-row-label">Phone Number:</div>
+                <div class="info-row-value" id="info-phone">—</div>
+              </div>
+              <div>
+                <div class="info-row-label">Email Address:</div>
+                <div class="info-row-value" id="info-email">—</div>
+              </div>
+              <div>
+                <div class="info-row-label">Learning Mode:</div>
+                <div class="info-row-value" id="info-learning-mode">—</div>
+              </div>
+              <div>
+                <div class="info-row-label">Status:</div>
+                <div class="info-row-value" id="info-status">—</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -234,19 +305,6 @@
           .eq('student_id', student.id)
           .eq('status', 'active');
 
-        // Update stats
-        document.getElementById('stat-courses').textContent = enrollments ? enrollments.length : 0;
-
-        // Calculate average progress
-        let totalProgress = 0;
-        if (enrollments && enrollments.length > 0) {
-          enrollments.forEach(e => {
-            totalProgress += e.progress || 0;
-          });
-          const avgProgress = Math.round(totalProgress / enrollments.length);
-          document.getElementById('stat-progress').textContent = avgProgress + '%';
-        }
-
         // Get payment summary
         const { data: payments } = await getSupabase()
           .from('payments')
@@ -258,9 +316,8 @@
         if (payments) {
           payments.forEach(p => totalPaid += p.amount);
         }
-        document.getElementById('stat-paid').textContent = formatCurrency(totalPaid);
 
-        // Calculate outstanding balance
+        // Calculate totals
         let totalFees = 0;
         if (enrollments) {
           enrollments.forEach(e => {
@@ -268,7 +325,14 @@
           });
         }
         const balance = calculateBalance(totalFees, totalPaid);
+
+        // Finance banner cards
+        document.getElementById('stat-billed').textContent = formatCurrency(totalFees);
+        document.getElementById('stat-paid').textContent = formatCurrency(totalPaid);
         document.getElementById('stat-balance').textContent = formatCurrency(balance);
+
+        // Profile card + Personal Information card
+        renderProfileCards(student, enrollments);
 
         // Render enrolled courses
         if (enrollments && enrollments.length > 0) {
@@ -287,6 +351,37 @@
         console.error('Dashboard error:', error);
         showToast('Failed to load dashboard data', 'error');
       }
+    }
+
+    function renderProfileCards(student, enrollments) {
+      // User Profile card
+      document.getElementById('profile-avatar-img').src = getAvatarUrl(student.full_name);
+      document.getElementById('profile-avatar-img').alt = student.full_name;
+      document.getElementById('profile-name').textContent = student.full_name;
+      document.getElementById('profile-number').textContent = student.student_number;
+
+      const programmeNames = enrollments && enrollments.length > 0
+        ? enrollments.map(e => e.courses?.name).filter(Boolean).join(', ')
+        : 'Not enrolled yet';
+      document.getElementById('profile-programme').textContent = programmeNames;
+
+      // Personal Information card
+      document.getElementById('info-student-number').textContent = student.student_number || '—';
+      document.getElementById('info-full-name').textContent = student.full_name || '—';
+      document.getElementById('info-gender').textContent = student.gender
+        ? student.gender.charAt(0).toUpperCase() + student.gender.slice(1)
+        : '—';
+      document.getElementById('info-dob').textContent = student.date_of_birth
+        ? formatDate(student.date_of_birth)
+        : '—';
+      document.getElementById('info-phone').textContent = student.phone || '—';
+      document.getElementById('info-email').textContent = student.email || '—';
+      document.getElementById('info-learning-mode').textContent = student.learning_preference
+        ? student.learning_preference.charAt(0).toUpperCase() + student.learning_preference.slice(1)
+        : '—';
+      document.getElementById('info-status').textContent = student.status
+        ? student.status.charAt(0).toUpperCase() + student.status.slice(1)
+        : '—';
     }
 
     function renderEnrolledCourses(enrollments) {
